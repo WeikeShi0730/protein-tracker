@@ -14,8 +14,8 @@ export function useFoods(profile: Profile | null, profileLoading: boolean = fals
     try {
       setLoading(true);
 
-      // Seed on first load if not yet seeded
-      if (profile && !profile.seeded) {
+      // Seed on first load if not yet seeded (also handles missing profile row)
+      if (!profile || !profile.seeded) {
         await seedFoodsForUser(user.id);
       }
 

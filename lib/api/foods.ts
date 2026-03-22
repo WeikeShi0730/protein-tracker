@@ -65,10 +65,10 @@ export async function seedFoodsForUser(userId: string): Promise<void> {
 
   if (insertError) throw insertError;
 
+  // Upsert so it creates the profile row if it doesn't exist yet
   const { error: updateError } = await supabase
     .from('profiles')
-    .update({ seeded: true })
-    .eq('id', userId);
+    .upsert({ id: userId, seeded: true });
 
   if (updateError) throw updateError;
 }
