@@ -94,7 +94,8 @@ export function useLogs() {
     logged_at?: string;
     notes?: string | null;
   }) {
-    const created = await createLog(entry);
+    if (!user) throw new Error('Not authenticated');
+    const created = await createLog({ ...entry, user_id: user.id });
     setAllEntries((prev) => [created, ...prev]);
   }
 

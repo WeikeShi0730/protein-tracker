@@ -14,6 +14,7 @@ export async function getLogsForRange(from: Date, to: Date): Promise<LogEntry[]>
 }
 
 export async function createLog(entry: {
+  user_id: string;
   food_id: string;
   servings: number;
   logged_at?: string;
