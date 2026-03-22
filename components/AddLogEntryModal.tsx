@@ -144,7 +144,7 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
                 placeholderTextColor="#999"
               />
 
-              {servings && !isNaN(parseFloat(servings)) && (
+              {!!servings && !isNaN(parseFloat(servings)) && (
                 <View style={styles.preview}>
                   <Text style={styles.previewText}>
                     ~{Math.round(parseFloat(servings) * selectedFood.protein_per_serving)}g protein ·{' '}

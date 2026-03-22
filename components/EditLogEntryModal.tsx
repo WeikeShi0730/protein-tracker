@@ -95,7 +95,7 @@ export default function EditLogEntryModal({ visible, entry, onClose, onSave }: P
               placeholderTextColor="#999"
             />
 
-            {entry && servings && !isNaN(parseFloat(servings)) && (
+            {entry && !!servings && !isNaN(parseFloat(servings)) && (
               <View style={styles.preview}>
                 <Text style={styles.previewText}>
                   ~{Math.round(parseFloat(servings) * entry.foods.protein_per_serving)}g protein ·{' '}
