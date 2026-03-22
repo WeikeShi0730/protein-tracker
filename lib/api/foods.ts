@@ -52,15 +52,16 @@ export async function seedFoodsForUser(userId: string): Promise<void> {
     .from('profiles')
     .select('seeded')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   if (profile?.seeded) return;
 
   const rows = SEED_FOODS.map((f) => ({ ...f, user_id: userId }));
 
+  // Plain insert — seeded flag prevents this from running twice
   const { error: insertError } = await supabase
     .from('foods')
-    .upsert(rows, { onConflict: 'user_id, lower(name)', ignoreDuplicates: true });
+    .insert(rows);
 
   if (insertError) throw insertError;
 
