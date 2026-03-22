@@ -19,7 +19,7 @@ type FoodInput = Omit<Food, 'id' | 'user_id' | 'created_at'>;
 
 export default function FoodsScreen() {
   const { profile, loading: profileLoading } = useProfile();
-  const { foods, loading, addFood, editFood, removeFood } = useFoods(profile, profileLoading);
+  const { foods, loading, error, addFood, editFood, removeFood } = useFoods(profile, profileLoading);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editingFood, setEditingFood] = useState<Food | null>(null);
@@ -67,6 +67,14 @@ export default function FoodsScreen() {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.center}>
+        <Text style={{ color: '#dc2626', padding: 20, textAlign: 'center' }}>Error: {error}</Text>
       </View>
     );
   }
