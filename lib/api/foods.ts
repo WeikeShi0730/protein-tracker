@@ -47,7 +47,7 @@ export async function deleteFood(id: string): Promise<void> {
 }
 
 export async function seedFoodsForUser(userId: string): Promise<void> {
-  // Check if already seeded
+  // Check profile seeded flag first
   const { data: profile } = await supabase
     .from('profiles')
     .select('seeded')
@@ -56,16 +56,19 @@ export async function seedFoodsForUser(userId: string): Promise<void> {
 
   if (profile?.seeded) return;
 
-  const rows = SEED_FOODS.map((f) => ({ ...f, user_id: userId }));
-
-  // Plain insert — seeded flag prevents this from running twice
-  const { error: insertError } = await supabase
+  // Also check if foods already exist (handles interrupted previous seed attempts)
+  const { count } = await supabase
     .from('foods')
-    .insert(rows);
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId);
 
-  if (insertError) throw insertError;
+  if (!count || count === 0) {
+    const rows = SEED_FOODS.map((f) => ({ ...f, user_id: userId }));
+    const { error: insertError } = await supabase.from('foods').insert(rows);
+    if (insertError) throw insertError;
+  }
 
-  // Upsert so it creates the profile row if it doesn't exist yet
+  // Upsert profile row so it works even if the row doesn't exist yet
   const { error: updateError } = await supabase
     .from('profiles')
     .upsert({ id: userId, seeded: true });
