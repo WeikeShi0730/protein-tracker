@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/contexts/ProfileContext';
 import { useFoods } from '@/hooks/useFoods';
 import FoodForm from '@/components/FoodForm';
 import type { Food } from '@/types';

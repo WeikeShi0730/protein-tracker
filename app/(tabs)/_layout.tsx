@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
+import { ProfileProvider } from '@/contexts/ProfileContext';
 
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5 }}>{label}</Text>;
@@ -7,6 +8,7 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
 
 export default function TabLayout() {
   return (
+    <ProfileProvider>
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: '#111',
@@ -38,5 +40,6 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    </ProfileProvider>
   );
 }

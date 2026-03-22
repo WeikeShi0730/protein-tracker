@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
 } from 'react-native';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/contexts/ProfileContext';
 import { useFoods } from '@/hooks/useFoods';
 import { useLogs } from '@/hooks/useLogs';
 import GoalsProgressBar from '@/components/GoalsProgressBar';
