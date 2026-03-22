@@ -21,7 +21,7 @@ import type { LogEntry } from '@/types';
 
 export default function TodayScreen() {
   const { profile, loading: profileLoading } = useProfile();
-  const { foods, loading: foodsLoading } = useFoods(profile);
+  const { foods, loading: foodsLoading } = useFoods(profile, profileLoading);
   const { todayLogs, pastDays, loading: logsLoading, addLog, editLog, removeLog, reload } = useLogs();
 
   const [showAdd, setShowAdd] = useState(false);

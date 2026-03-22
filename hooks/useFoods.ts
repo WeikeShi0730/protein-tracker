@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getFoods, createFood, updateFood, deleteFood, seedFoodsForUser } from '@/lib/api/foods';
 import type { Food, Profile } from '@/types';
 
-export function useFoods(profile: Profile | null) {
+export function useFoods(profile: Profile | null, profileLoading: boolean = false) {
   const { user } = useAuth();
   const [foods, setFoods] = useState<Food[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,10 +29,10 @@ export function useFoods(profile: Profile | null) {
   }, [user, profile]);
 
   useEffect(() => {
-    if (profile !== null) {
+    if (!profileLoading) {
       load();
     }
-  }, [load, profile]);
+  }, [load, profileLoading]);
 
   async function addFood(food: Omit<Food, 'id' | 'user_id' | 'created_at'>) {
     const created = await createFood(food);

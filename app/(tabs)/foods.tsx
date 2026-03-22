@@ -18,8 +18,8 @@ import type { Food } from '@/types';
 type FoodInput = Omit<Food, 'id' | 'user_id' | 'created_at'>;
 
 export default function FoodsScreen() {
-  const { profile } = useProfile();
-  const { foods, loading, addFood, editFood, removeFood } = useFoods(profile);
+  const { profile, loading: profileLoading } = useProfile();
+  const { foods, loading, addFood, editFood, removeFood } = useFoods(profile, profileLoading);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editingFood, setEditingFood] = useState<Food | null>(null);
