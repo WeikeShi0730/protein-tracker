@@ -9,8 +9,10 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Link } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
+import { C, R } from '@/constants/ClaudeTheme';
 
 export default function LoginScreen() {
   const { signIn, signInWithOAuth } = useAuth();
@@ -53,133 +55,210 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.inner}>
-        <Text style={styles.title}>Protein Tracker</Text>
-        <Text style={styles.subtitle}>Sign in to your account</Text>
 
-        {error && <Text style={styles.error}>{error}</Text>}
+        {/* Brand mark */}
+        <Animated.View entering={FadeInDown.delay(0).duration(400)} style={styles.brandWrap}>
+          <View style={styles.brandOrb} />
+          <Text style={styles.brandName}>Protein Tracker</Text>
+          <Text style={styles.brandTagline}>Your daily nutrition companion</Text>
+        </Animated.View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#999"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          autoComplete="email"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#999"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoComplete="password"
-        />
+        {/* Form card */}
+        <Animated.View entering={FadeInDown.delay(80).duration(400)} style={styles.card}>
+          <Text style={styles.cardTitle}>Welcome back</Text>
 
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading || !!oauthLoading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Sign In</Text>
+          {error && (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
           )}
-        </TouchableOpacity>
 
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or continue with</Text>
-          <View style={styles.dividerLine} />
-        </View>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="you@example.com"
+            placeholderTextColor={C.textPlaceholder}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            autoComplete="email"
+          />
 
-        <TouchableOpacity
-          style={[styles.oauthBtn, !!oauthLoading && styles.buttonDisabled]}
-          onPress={() => handleOAuth('google')}
-          disabled={loading || !!oauthLoading}
-        >
-          {oauthLoading === 'google' ? (
-            <ActivityIndicator color="#111" />
-          ) : (
-            <Text style={styles.oauthBtnText}>Continue with Google</Text>
-          )}
-        </TouchableOpacity>
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="••••••••"
+            placeholderTextColor={C.textPlaceholder}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoComplete="password"
+          />
 
-        {Platform.OS !== 'android' && (
           <TouchableOpacity
-            style={[styles.oauthBtn, styles.appleBtn, !!oauthLoading && styles.buttonDisabled]}
-            onPress={() => handleOAuth('apple')}
+            style={[styles.primaryBtn, (loading || !!oauthLoading) && styles.disabled]}
+            onPress={handleLogin}
             disabled={loading || !!oauthLoading}
+            activeOpacity={0.85}
           >
-            {oauthLoading === 'apple' ? (
-              <ActivityIndicator color="#fff" />
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <Text style={[styles.oauthBtnText, styles.appleBtnText]}>Continue with Apple</Text>
+              <Text style={styles.primaryBtnText}>Sign In</Text>
             )}
           </TouchableOpacity>
-        )}
+        </Animated.View>
 
-        <Link href="/(auth)/signup" asChild>
-          <TouchableOpacity style={styles.linkRow}>
-            <Text style={styles.linkText}>
-              Don't have an account? <Text style={styles.linkBold}>Sign up</Text>
-            </Text>
+        {/* OAuth */}
+        <Animated.View entering={FadeInDown.delay(160).duration(400)} style={styles.oauthWrap}>
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.oauthBtn, !!oauthLoading && styles.disabled]}
+            onPress={() => handleOAuth('google')}
+            disabled={loading || !!oauthLoading}
+            activeOpacity={0.7}
+          >
+            {oauthLoading === 'google' ? (
+              <ActivityIndicator color={C.textPrimary} size="small" />
+            ) : (
+              <Text style={styles.oauthBtnText}>Continue with Google</Text>
+            )}
           </TouchableOpacity>
-        </Link>
+
+          {Platform.OS !== 'android' && (
+            <TouchableOpacity
+              style={[styles.oauthBtn, styles.appleBtn, !!oauthLoading && styles.disabled]}
+              onPress={() => handleOAuth('apple')}
+              disabled={loading || !!oauthLoading}
+              activeOpacity={0.7}
+            >
+              {oauthLoading === 'apple' ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={[styles.oauthBtnText, styles.appleBtnText]}>Continue with Apple</Text>
+              )}
+            </TouchableOpacity>
+          )}
+        </Animated.View>
+
+        {/* Sign up link */}
+        <Animated.View entering={FadeInDown.delay(240).duration(400)}>
+          <Link href="/(auth)/signup" asChild>
+            <TouchableOpacity style={styles.linkRow}>
+              <Text style={styles.linkText}>
+                Don't have an account?{' '}
+                <Text style={styles.linkAccent}>Sign up</Text>
+              </Text>
+            </TouchableOpacity>
+          </Link>
+        </Animated.View>
+
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 32 },
-  title: { fontSize: 28, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
-  subtitle: { fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 32 },
-  error: {
-    color: '#dc2626',
-    marginBottom: 12,
-    textAlign: 'center',
-    fontSize: 14,
+  container: { flex: 1, backgroundColor: C.bg },
+  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 28 },
+
+  // Brand
+  brandWrap: { alignItems: 'center', marginBottom: 32 },
+  brandOrb: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: C.accent,
+    marginBottom: 14,
+    shadowColor: C.accent,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
+  brandName: { fontSize: 24, fontWeight: '700', color: C.textPrimary, marginBottom: 4 },
+  brandTagline: { fontSize: 14, color: C.textSecondary },
+
+  // Card
+  card: {
+    backgroundColor: C.bgElevated,
+    borderRadius: R.lg,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: C.border,
+    shadowColor: C.shadowColor,
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  cardTitle: { fontSize: 18, fontWeight: '700', color: C.textPrimary, marginBottom: 16 },
+
+  errorBanner: {
+    backgroundColor: C.errorBg,
+    borderRadius: R.sm,
+    padding: 10,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#EFBDB7',
+  },
+  errorText: { color: C.error, fontSize: 13, textAlign: 'center' },
+
+  label: { fontSize: 12, fontWeight: '600', color: C.textSecondary, marginBottom: 6, letterSpacing: 0.3 },
   input: {
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
-    paddingHorizontal: 16,
+    borderColor: C.border,
+    borderRadius: R.sm,
+    paddingHorizontal: 13,
     paddingVertical: 12,
-    fontSize: 16,
-    marginBottom: 12,
-    color: '#111',
+    fontSize: 15,
+    color: C.textPrimary,
+    backgroundColor: C.bgSubtle,
+    marginBottom: 14,
   },
-  button: {
-    backgroundColor: '#111',
-    borderRadius: 10,
+
+  primaryBtn: {
+    backgroundColor: C.accent,
+    borderRadius: R.md,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 4,
+    minHeight: 48,
+    justifyContent: 'center',
   },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#e5e7eb' },
-  dividerText: { color: '#9ca3af', fontSize: 13, marginHorizontal: 10 },
+  primaryBtnText: { color: '#fff', fontSize: 15, fontWeight: '600', letterSpacing: 0.2 },
+
+  // OAuth
+  oauthWrap: { marginBottom: 20 },
+  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 14 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: C.border },
+  dividerText: { color: C.textMuted, fontSize: 12, marginHorizontal: 12, fontWeight: '500' },
+
   oauthBtn: {
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
+    borderColor: C.border,
+    borderRadius: R.md,
     paddingVertical: 13,
     alignItems: 'center',
     marginBottom: 10,
-    backgroundColor: '#fff',
+    backgroundColor: C.bgElevated,
+    minHeight: 46,
+    justifyContent: 'center',
   },
-  oauthBtnText: { fontSize: 15, fontWeight: '600', color: '#111' },
-  appleBtn: { backgroundColor: '#111', borderColor: '#111' },
+  oauthBtnText: { fontSize: 14, fontWeight: '600', color: C.textPrimary },
+  appleBtn: { backgroundColor: C.textPrimary, borderColor: C.textPrimary },
   appleBtnText: { color: '#fff' },
-  linkRow: { marginTop: 20, alignItems: 'center' },
-  linkText: { color: '#666', fontSize: 14 },
-  linkBold: { fontWeight: '600', color: '#111' },
+
+  linkRow: { alignItems: 'center', paddingVertical: 4 },
+  linkText: { color: C.textSecondary, fontSize: 14 },
+  linkAccent: { fontWeight: '700', color: C.accent },
+
+  disabled: { opacity: 0.5 },
 });

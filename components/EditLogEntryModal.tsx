@@ -10,7 +10,9 @@ import {
   Platform,
   SafeAreaView,
 } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import type { LogEntry } from '@/types';
+import { C, R } from '@/constants/ClaudeTheme';
 
 interface Props {
   visible: boolean;
@@ -52,28 +54,48 @@ export default function EditLogEntryModal({ visible, entry, onClose, onSave }: P
     }
   }
 
+  const previewProtein = entry && servings && !isNaN(parseFloat(servings))
+    ? Math.round(parseFloat(servings) * entry.foods.protein_per_serving)
+    : null;
+  const previewCal = entry && servings && !isNaN(parseFloat(servings))
+    ? Math.round(parseFloat(servings) * entry.foods.calories_per_serving)
+    : null;
+
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>Edit Entry</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeBtn}>Cancel</Text>
-            </TouchableOpacity>
+            <View style={styles.headerDrag} />
+            <View style={styles.headerRow}>
+              <Text style={styles.title}>Edit Entry</Text>
+              <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.body}>
             {entry && (
-              <View style={styles.foodLabel}>
-                <Text style={styles.foodName}>{entry.foods.name}</Text>
+              <View style={styles.foodCard}>
+                <Text style={styles.foodCardLabel}>Editing</Text>
+                <Text style={styles.foodCardName}>{entry.foods.name}</Text>
               </View>
             )}
 
-            {error && <Text style={styles.error}>{error}</Text>}
+            {error && (
+              <Animated.View entering={FadeIn.duration(200)} style={styles.errorBanner}>
+                <Text style={styles.errorText}>{error}</Text>
+              </Animated.View>
+            )}
 
             <Text style={styles.label}>
               Servings{entry ? ` (${entry.foods.serving_unit})` : ''}
@@ -84,6 +106,7 @@ export default function EditLogEntryModal({ visible, entry, onClose, onSave }: P
               onChangeText={setServings}
               keyboardType="decimal-pad"
               autoFocus
+              placeholderTextColor={C.textPlaceholder}
             />
 
             <Text style={styles.label}>Notes (optional)</Text>
@@ -92,24 +115,33 @@ export default function EditLogEntryModal({ visible, entry, onClose, onSave }: P
               value={notes}
               onChangeText={setNotes}
               placeholder="e.g. post-workout"
-              placeholderTextColor="#999"
+              placeholderTextColor={C.textPlaceholder}
             />
 
-            {entry && !!servings && !isNaN(parseFloat(servings)) && (
-              <View style={styles.preview}>
-                <Text style={styles.previewText}>
-                  ~{Math.round(parseFloat(servings) * entry.foods.protein_per_serving)}g protein ·{' '}
-                  {Math.round(parseFloat(servings) * entry.foods.calories_per_serving)} kcal
-                </Text>
-              </View>
+            {previewProtein !== null && (
+              <Animated.View entering={FadeIn.duration(200)} style={styles.preview}>
+                <Text style={styles.previewLabel}>Preview</Text>
+                <View style={styles.previewRow}>
+                  <View style={styles.previewChip}>
+                    <Text style={styles.previewChipValue}>{previewProtein}g</Text>
+                    <Text style={styles.previewChipLabel}>protein</Text>
+                  </View>
+                  <View style={styles.previewDivider} />
+                  <View style={styles.previewChip}>
+                    <Text style={styles.previewChipValue}>{previewCal}</Text>
+                    <Text style={styles.previewChipLabel}>kcal</Text>
+                  </View>
+                </View>
+              </Animated.View>
             )}
 
             <TouchableOpacity
               style={[styles.saveBtn, loading && styles.disabled]}
               onPress={handleSave}
               disabled={loading}
+              activeOpacity={0.8}
             >
-              <Text style={styles.saveBtnText}>{loading ? 'Saving...' : 'Save Changes'}</Text>
+              <Text style={styles.saveBtnText}>{loading ? 'Saving…' : 'Save Changes'}</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -119,50 +151,90 @@ export default function EditLogEntryModal({ visible, entry, onClose, onSave }: P
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: C.bgElevated },
+
   header: {
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+    paddingBottom: 14,
+  },
+  headerDrag: {
+    width: 36,
+    height: 4,
+    backgroundColor: C.border,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 10,
+    marginBottom: 12,
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    paddingHorizontal: 20,
   },
-  title: { fontSize: 18, fontWeight: '700', color: '#111' },
-  closeBtn: { fontSize: 16, color: '#6b7280' },
-  body: { padding: 16, flex: 1 },
-  foodLabel: {
-    backgroundColor: '#f3f4f6',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 16,
+  title: { fontSize: 18, fontWeight: '700', color: C.textPrimary },
+  cancelBtn: { paddingVertical: 4, paddingHorizontal: 2 },
+  cancelBtnText: { fontSize: 15, color: C.textSecondary, fontWeight: '500' },
+
+  body: { padding: 20, flex: 1 },
+
+  foodCard: {
+    backgroundColor: C.accentLight,
+    borderRadius: R.md,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: C.accentMid,
   },
-  foodName: { fontSize: 16, fontWeight: '600', color: '#111' },
-  error: { color: '#dc2626', marginBottom: 12, fontSize: 13 },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 4 },
+  foodCardLabel: { fontSize: 11, fontWeight: '600', color: C.accent, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 2 },
+  foodCardName: { fontSize: 16, fontWeight: '600', color: C.textPrimary },
+
+  errorBanner: {
+    backgroundColor: C.errorBg,
+    padding: 10,
+    borderRadius: R.sm,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#EFBDB7',
+  },
+  errorText: { color: C.error, fontSize: 13 },
+
+  label: { fontSize: 12, fontWeight: '600', color: C.textSecondary, marginBottom: 6, letterSpacing: 0.3 },
   input: {
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderColor: C.border,
+    borderRadius: R.sm,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
     fontSize: 15,
-    color: '#111',
-    marginBottom: 14,
-  },
-  preview: {
-    backgroundColor: '#f0fdf4',
-    borderRadius: 8,
-    padding: 10,
+    color: C.textPrimary,
+    backgroundColor: C.bgSubtle,
     marginBottom: 16,
   },
-  previewText: { fontSize: 14, color: '#166534', fontWeight: '500', textAlign: 'center' },
-  saveBtn: {
-    backgroundColor: '#111',
-    borderRadius: 10,
-    paddingVertical: 14,
+
+  preview: {
+    backgroundColor: C.accentLight,
+    borderRadius: R.md,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: C.accentMid,
     alignItems: 'center',
   },
-  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  disabled: { opacity: 0.6 },
+  previewLabel: { fontSize: 11, fontWeight: '600', color: C.accent, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 },
+  previewRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  previewChip: { alignItems: 'center' },
+  previewChipValue: { fontSize: 22, fontWeight: '700', color: C.textPrimary },
+  previewChipLabel: { fontSize: 11, color: C.textSecondary, marginTop: 1 },
+  previewDivider: { width: 1, height: 32, backgroundColor: C.accentMid },
+
+  saveBtn: {
+    backgroundColor: C.accent,
+    borderRadius: R.md,
+    paddingVertical: 15,
+    alignItems: 'center',
+  },
+  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '600', letterSpacing: 0.2 },
+  disabled: { opacity: 0.5 },
 });

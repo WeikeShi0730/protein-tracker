@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import type { Food } from '@/types';
 import { FOOD_CATEGORIES, DEFAULT_CATEGORY } from '@/constants/seedFoods';
+import { C, R } from '@/constants/ClaudeTheme';
 
 type FoodInput = Omit<Food, 'id' | 'user_id' | 'created_at'>;
 
@@ -58,7 +59,11 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
 
   return (
     <ScrollView keyboardShouldPersistTaps="handled">
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.error}>{error}</Text>
+        </View>
+      )}
 
       <Text style={styles.label}>Food Name</Text>
       <TextInput
@@ -66,7 +71,7 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
         value={name}
         onChangeText={setName}
         placeholder="e.g. Chicken Breast"
-        placeholderTextColor="#999"
+        placeholderTextColor={C.textPlaceholder}
       />
 
       <Text style={styles.label}>Category</Text>
@@ -76,6 +81,7 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
             key={cat}
             style={[styles.chip, category === cat && styles.chipSelected]}
             onPress={() => setCategory(cat)}
+            activeOpacity={0.7}
           >
             <Text style={[styles.chipText, category === cat && styles.chipTextSelected]}>
               {cat}
@@ -90,7 +96,7 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
         value={servingUnit}
         onChangeText={setServingUnit}
         placeholder="e.g. 100g, 1 cup"
-        placeholderTextColor="#999"
+        placeholderTextColor={C.textPlaceholder}
       />
 
       <Text style={styles.label}>Calories per Serving</Text>
@@ -99,7 +105,7 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
         value={calories}
         onChangeText={setCalories}
         placeholder="e.g. 165"
-        placeholderTextColor="#999"
+        placeholderTextColor={C.textPlaceholder}
         keyboardType="decimal-pad"
       />
 
@@ -109,7 +115,7 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
         value={protein}
         onChangeText={setProtein}
         placeholder="e.g. 31"
-        placeholderTextColor="#999"
+        placeholderTextColor={C.textPlaceholder}
         keyboardType="decimal-pad"
       />
 
@@ -121,8 +127,9 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
           style={[styles.submitBtn, loading && styles.disabled]}
           onPress={handleSubmit}
           disabled={loading}
+          activeOpacity={0.8}
         >
-          <Text style={styles.submitText}>{loading ? 'Saving...' : submitLabel}</Text>
+          <Text style={styles.submitText}>{loading ? 'Saving…' : submitLabel}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -130,40 +137,60 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
 }
 
 const styles = StyleSheet.create({
-  error: { color: '#dc2626', marginBottom: 12, fontSize: 13 },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6 },
+  errorBanner: {
+    backgroundColor: C.errorBg,
+    borderRadius: R.sm,
+    padding: 10,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#EFBDB7',
+  },
+  error: { color: C.error, fontSize: 13 },
+
+  label: { fontSize: 12, fontWeight: '600', color: C.textSecondary, marginBottom: 6, letterSpacing: 0.3 },
   input: {
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderColor: C.border,
+    borderRadius: R.sm,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
     fontSize: 15,
-    color: '#111',
-    marginBottom: 14,
+    color: C.textPrimary,
+    backgroundColor: C.bgSubtle,
+    marginBottom: 16,
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
+
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   chip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: R.pill,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
+    borderColor: C.border,
+    backgroundColor: C.bgSubtle,
   },
-  chipSelected: { backgroundColor: '#111', borderColor: '#111' },
-  chipText: { fontSize: 13, color: '#374151' },
-  chipTextSelected: { color: '#fff' },
-  buttons: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  chipSelected: { backgroundColor: C.accent, borderColor: C.accent },
+  chipText: { fontSize: 13, color: C.textSecondary, fontWeight: '500' },
+  chipTextSelected: { color: '#fff', fontWeight: '600' },
+
+  buttons: { flexDirection: 'row', gap: 10, marginTop: 4, marginBottom: 20 },
   cancelBtn: {
-    flex: 1, paddingVertical: 12, backgroundColor: '#e5e7eb',
-    borderRadius: 10, alignItems: 'center',
+    flex: 1,
+    paddingVertical: 13,
+    backgroundColor: C.bgMuted,
+    borderRadius: R.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: C.border,
   },
-  cancelText: { fontSize: 15, fontWeight: '600', color: '#374151' },
+  cancelText: { fontSize: 15, fontWeight: '600', color: C.textSecondary },
   submitBtn: {
-    flex: 1, paddingVertical: 12, backgroundColor: '#111',
-    borderRadius: 10, alignItems: 'center',
+    flex: 1,
+    paddingVertical: 13,
+    backgroundColor: C.accent,
+    borderRadius: R.md,
+    alignItems: 'center',
   },
   submitText: { fontSize: 15, fontWeight: '600', color: '#fff' },
-  disabled: { opacity: 0.6 },
+  disabled: { opacity: 0.5 },
 });

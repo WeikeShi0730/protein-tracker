@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UI
 import type { DayGroup, LogEntry } from '@/types';
 import DailyLogTable from './DailyLogTable';
 import GoalsProgressBar from './GoalsProgressBar';
+import { C, R } from '@/constants/ClaudeTheme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -18,7 +19,12 @@ export default function PastDayAccordion({ dayGroup, onEdit, onDelete }: Props) 
   const [open, setOpen] = useState(false);
 
   function toggle() {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    LayoutAnimation.configureNext({
+      duration: 260,
+      create: { type: 'easeInEaseOut', property: 'opacity' },
+      update: { type: 'spring', springDamping: 0.8 },
+      delete: { type: 'easeInEaseOut', property: 'opacity' },
+    });
     setOpen((prev) => !prev);
   }
 
@@ -29,12 +35,23 @@ export default function PastDayAccordion({ dayGroup, onEdit, onDelete }: Props) 
       <TouchableOpacity style={styles.header} onPress={toggle} activeOpacity={0.7}>
         <View style={styles.headerLeft}>
           <Text style={styles.dateLabel}>{dayGroup.label}</Text>
-          <Text style={styles.totals}>
-            {Math.round(dayGroup.totalProtein)}g protein · {Math.round(dayGroup.totalCalories)} kcal
-          </Text>
+          <View style={styles.totalsRow}>
+            <View style={styles.totalChip}>
+              <Text style={styles.totalProtein}>{Math.round(dayGroup.totalProtein)}g</Text>
+              <Text style={styles.totalChipLabel}>protein</Text>
+            </View>
+            <View style={styles.totalChipDivider} />
+            <View style={styles.totalChip}>
+              <Text style={styles.totalCal}>{Math.round(dayGroup.totalCalories)}</Text>
+              <Text style={styles.totalChipLabel}>kcal</Text>
+            </View>
+          </View>
         </View>
-        <Text style={styles.chevron}>{open ? '▲' : '▼'}</Text>
+        <View style={[styles.chevronWrap, open && styles.chevronWrapOpen]}>
+          <Text style={styles.chevron}>›</Text>
+        </View>
       </TouchableOpacity>
+
       {open && (
         <View style={styles.body}>
           {hasGoals && (
@@ -44,14 +61,14 @@ export default function PastDayAccordion({ dayGroup, onEdit, onDelete }: Props) 
                 goal={dayGroup.proteinGoal!}
                 label="Protein"
                 unit="g"
-                color="#3b82f6"
+                color={C.accent}
               />
               <GoalsProgressBar
                 consumed={dayGroup.totalCalories}
                 goal={dayGroup.calorieGoal!}
                 label="Calories"
                 unit=" kcal"
-                color="#10b981"
+                color={C.success}
               />
             </View>
           )}
@@ -64,29 +81,49 @@ export default function PastDayAccordion({ dayGroup, onEdit, onDelete }: Props) 
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: C.bgElevated,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    marginBottom: 10,
+    borderColor: C.border,
+    borderRadius: R.md,
+    marginBottom: 8,
     overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
   },
   headerLeft: { flex: 1 },
-  dateLabel: { fontSize: 15, fontWeight: '600', color: '#111' },
-  totals: { fontSize: 13, color: '#6b7280', marginTop: 2 },
-  chevron: { fontSize: 12, color: '#9ca3af', marginLeft: 8 },
-  body: { paddingHorizontal: 12, paddingBottom: 12 },
+  dateLabel: { fontSize: 14, fontWeight: '600', color: C.textPrimary, marginBottom: 5 },
+  totalsRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  totalChip: { flexDirection: 'row', alignItems: 'baseline', gap: 3 },
+  totalProtein: { fontSize: 13, fontWeight: '600', color: C.accent },
+  totalCal: { fontSize: 13, fontWeight: '500', color: C.textSecondary },
+  totalChipLabel: { fontSize: 11, color: C.textMuted },
+  totalChipDivider: { width: 1, height: 12, backgroundColor: C.border, marginHorizontal: 6 },
+
+  chevronWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: C.bgMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '0deg' }],
+  },
+  chevronWrapOpen: {
+    transform: [{ rotate: '90deg' }],
+  },
+  chevron: { fontSize: 16, color: C.textSecondary, lineHeight: 24 },
+
+  body: { paddingHorizontal: 12, paddingBottom: 12, paddingTop: 4 },
   goals: {
-    paddingTop: 12,
-    paddingBottom: 4,
+    paddingTop: 10,
+    paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    marginBottom: 8,
+    borderBottomColor: C.border,
+    marginBottom: 10,
   },
 });

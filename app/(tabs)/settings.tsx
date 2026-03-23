@@ -14,8 +14,10 @@ import {
   Pressable,
   Modal,
 } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useProfile } from '@/contexts/ProfileContext';
 import { useAuth } from '@/hooks/useAuth';
+import { C, R, shadow } from '@/constants/ClaudeTheme';
 
 export default function SettingsScreen() {
   const { profile, loading, updateGoals } = useProfile();
@@ -52,7 +54,7 @@ export default function SettingsScreen() {
     try {
       await updateGoals(p, c);
       setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      setTimeout(() => setSaved(false), 2500);
     } catch (e: any) {
       setSaveError(e.message);
     } finally {
@@ -78,7 +80,7 @@ export default function SettingsScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={C.accent} />
       </View>
     );
   }
@@ -90,10 +92,17 @@ export default function SettingsScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.scroll}>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Daily Goals</Text>
 
-            {!!saveError && <Text style={styles.error}>{saveError}</Text>}
+          {/* Goals section */}
+          <Animated.View entering={FadeInDown.delay(0).duration(350)} style={styles.section}>
+            <Text style={styles.sectionTitle}>Daily Goals</Text>
+            <Text style={styles.sectionSubtitle}>Set your protein and calorie targets</Text>
+
+            {!!saveError && (
+              <Animated.View entering={FadeIn.duration(200)} style={styles.errorBanner}>
+                <Text style={styles.errorText}>{saveError}</Text>
+              </Animated.View>
+            )}
 
             <Text style={styles.label}>Protein Goal (g)</Text>
             <TextInput
@@ -102,7 +111,7 @@ export default function SettingsScreen() {
               onChangeText={setProtein}
               keyboardType="number-pad"
               placeholder="150"
-              placeholderTextColor="#999"
+              placeholderTextColor={C.textPlaceholder}
             />
 
             <Text style={styles.label}>Calorie Goal (kcal)</Text>
@@ -112,31 +121,52 @@ export default function SettingsScreen() {
               onChangeText={setCalories}
               keyboardType="number-pad"
               placeholder="2000"
-              placeholderTextColor="#999"
+              placeholderTextColor={C.textPlaceholder}
             />
 
             <TouchableOpacity
-              style={[styles.saveBtn, (saving || saved) && styles.savedBtn]}
+              style={[styles.saveBtn, saved && styles.savedBtn]}
               onPress={handleSave}
               disabled={saving || saved}
+              activeOpacity={0.8}
             >
-              <Text style={styles.saveBtnText}>
-                {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Goals'}
-              </Text>
+              {saving ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.saveBtnText}>
+                  {saved ? '✓ Saved' : 'Save Goals'}
+                </Text>
+              )}
             </TouchableOpacity>
-          </View>
+          </Animated.View>
 
-          <View style={styles.section}>
+          {/* Account section */}
+          <Animated.View entering={FadeInDown.delay(100).duration(350)} style={styles.section}>
             <Text style={styles.sectionTitle}>Account</Text>
-            <TouchableOpacity style={styles.signOutBtn} onPress={() => setShowSignOutConfirm(true)}>
+            <Text style={styles.sectionSubtitle}>Manage your session</Text>
+
+            <TouchableOpacity
+              style={styles.signOutBtn}
+              onPress={() => setShowSignOutConfirm(true)}
+              activeOpacity={0.7}
+            >
               <Text style={styles.signOutText}>Sign Out</Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
+
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <Modal visible={showSignOutConfirm} transparent animationType="fade" onRequestClose={() => setShowSignOutConfirm(false)}>
-        <Pressable style={styles.overlay} onPress={() => !signingOut && setShowSignOutConfirm(false)}>
+      <Modal
+        visible={showSignOutConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSignOutConfirm(false)}
+      >
+        <Pressable
+          style={styles.overlay}
+          onPress={() => !signingOut && setShowSignOutConfirm(false)}
+        >
           <Pressable style={styles.dialog}>
             <Text style={styles.dialogTitle}>Sign Out</Text>
             <Text style={styles.dialogMessage}>Are you sure you want to sign out?</Text>
@@ -154,7 +184,7 @@ export default function SettingsScreen() {
                 disabled={signingOut}
               >
                 {signingOut ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color="#fff" size="small" />
                 ) : (
                   <Text style={styles.dialogConfirmText}>Sign Out</Text>
                 )}
@@ -168,75 +198,103 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  error: { color: '#dc2626', fontSize: 13, marginBottom: 12 },
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scroll: { padding: 16 },
+  container: { flex: 1, backgroundColor: C.bg },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.bg },
+  scroll: { padding: 16, paddingBottom: 40 },
+
   section: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    backgroundColor: C.bgElevated,
+    borderRadius: R.lg,
+    padding: 18,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: C.border,
+    ...shadow,
   },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111', marginBottom: 16 },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 4 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: C.textPrimary, marginBottom: 2 },
+  sectionSubtitle: { fontSize: 13, color: C.textMuted, marginBottom: 18 },
+
+  errorBanner: {
+    backgroundColor: C.errorBg,
+    borderRadius: R.sm,
+    padding: 10,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#EFBDB7',
+  },
+  errorText: { color: C.error, fontSize: 13 },
+
+  label: { fontSize: 12, fontWeight: '600', color: C.textSecondary, marginBottom: 6, letterSpacing: 0.3 },
   input: {
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderColor: C.border,
+    borderRadius: R.sm,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
     fontSize: 15,
-    color: '#111',
+    color: C.textPrimary,
+    backgroundColor: C.bgSubtle,
     marginBottom: 14,
   },
+
   saveBtn: {
-    backgroundColor: '#111',
-    borderRadius: 10,
+    backgroundColor: C.accent,
+    borderRadius: R.md,
     paddingVertical: 13,
     alignItems: 'center',
     marginTop: 4,
+    minHeight: 46,
+    justifyContent: 'center',
   },
-  savedBtn: { backgroundColor: '#10b981' },
-  saveBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  savedBtn: { backgroundColor: C.success },
+  saveBtnText: { color: '#fff', fontSize: 15, fontWeight: '600', letterSpacing: 0.2 },
+
   signOutBtn: {
-    backgroundColor: '#fee2e2',
-    borderRadius: 10,
+    backgroundColor: C.errorBg,
+    borderRadius: R.md,
     paddingVertical: 13,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#EFBDB7',
   },
-  signOutText: { color: '#dc2626', fontSize: 15, fontWeight: '600' },
+  signOutText: { color: C.error, fontSize: 15, fontWeight: '600' },
+
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(26,26,26,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   dialog: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: C.bgElevated,
+    borderRadius: R.lg,
     padding: 24,
     marginHorizontal: 32,
     width: '100%',
     maxWidth: 360,
   },
-  dialogTitle: { fontSize: 17, fontWeight: '700', color: '#111', marginBottom: 8 },
-  dialogMessage: { fontSize: 14, color: '#6b7280', lineHeight: 20, marginBottom: 20 },
+  dialogTitle: { fontSize: 17, fontWeight: '700', color: C.textPrimary, marginBottom: 8 },
+  dialogMessage: { fontSize: 14, color: C.textSecondary, lineHeight: 21, marginBottom: 20 },
   dialogActions: { flexDirection: 'row', gap: 10 },
   dialogCancel: {
-    flex: 1, paddingVertical: 11, backgroundColor: '#f3f4f6',
-    borderRadius: 10, alignItems: 'center',
+    flex: 1,
+    paddingVertical: 11,
+    backgroundColor: C.bgMuted,
+    borderRadius: R.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: C.border,
   },
-  dialogCancelText: { fontSize: 15, fontWeight: '600', color: '#374151' },
+  dialogCancelText: { fontSize: 14, fontWeight: '600', color: C.textSecondary },
   dialogConfirm: {
-    flex: 1, paddingVertical: 11, backgroundColor: '#dc2626',
-    borderRadius: 10, alignItems: 'center',
+    flex: 1,
+    paddingVertical: 11,
+    backgroundColor: C.error,
+    borderRadius: R.md,
+    alignItems: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
   },
-  dialogConfirmText: { fontSize: 15, fontWeight: '600', color: '#fff' },
-  disabled: { opacity: 0.6 },
+  dialogConfirmText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+  disabled: { opacity: 0.5 },
 });

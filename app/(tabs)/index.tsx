@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
 } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useProfile } from '@/contexts/ProfileContext';
 import { useFoods } from '@/hooks/useFoods';
 import { useLogs } from '@/hooks/useLogs';
@@ -18,6 +19,7 @@ import PastDayAccordion from '@/components/PastDayAccordion';
 import AddLogEntryModal from '@/components/AddLogEntryModal';
 import EditLogEntryModal from '@/components/EditLogEntryModal';
 import type { LogEntry } from '@/types';
+import { C, R, shadow } from '@/constants/ClaudeTheme';
 
 export default function TodayScreen() {
   const { profile, loading: profileLoading } = useProfile();
@@ -56,7 +58,7 @@ export default function TodayScreen() {
   if (loading && !refreshing) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={C.accent} />
       </View>
     );
   }
@@ -65,45 +67,68 @@ export default function TodayScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={C.accent}
+            colors={[C.accent]}
+          />
+        }
       >
-        {/* Goals */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Daily Goals</Text>
+        {/* Goals card */}
+        <Animated.View entering={FadeInDown.delay(0).duration(350)} style={styles.goalsCard}>
+          <View style={styles.goalsHeader}>
+            <Text style={styles.sectionTitle}>Daily Goals</Text>
+            {totalProtein > 0 && (
+              <View style={styles.progressBadge}>
+                <Text style={styles.progressBadgeText}>
+                  {Math.round((totalProtein / (profile?.daily_protein_goal ?? 150)) * 100)}%
+                </Text>
+              </View>
+            )}
+          </View>
           <GoalsProgressBar
             consumed={totalProtein}
             goal={profile?.daily_protein_goal ?? 150}
             label="Protein"
             unit="g"
-            color="#3b82f6"
+            color={C.accent}
           />
           <GoalsProgressBar
             consumed={totalCalories}
             goal={profile?.daily_calorie_goal ?? 2000}
             label="Calories"
             unit=" kcal"
-            color="#10b981"
+            color={C.success}
           />
-        </View>
+        </Animated.View>
 
         {/* Add Entry Button */}
-        <TouchableOpacity style={styles.addBtn} onPress={() => setShowAdd(true)}>
-          <Text style={styles.addBtnText}>+ Add Food Entry</Text>
-        </TouchableOpacity>
+        <Animated.View entering={FadeInDown.delay(80).duration(350)}>
+          <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() => setShowAdd(true)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.addBtnPlus}>+</Text>
+            <Text style={styles.addBtnText}>Log Food Entry</Text>
+          </TouchableOpacity>
+        </Animated.View>
 
         {/* Today's Log */}
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(160).duration(350)} style={styles.section}>
           <Text style={styles.sectionTitle}>Today</Text>
           <DailyLogTable
             entries={todayLogs}
             onEdit={(entry) => setEditEntry(entry)}
             onDelete={handleDelete}
           />
-        </View>
+        </Animated.View>
 
         {/* 7-Day History */}
         {pastDays.length > 0 && (
-          <View style={styles.section}>
+          <Animated.View entering={FadeIn.delay(240).duration(350)} style={styles.section}>
             <Text style={styles.sectionTitle}>Past 7 Days</Text>
             {pastDays.map((day) => (
               <PastDayAccordion
@@ -113,7 +138,7 @@ export default function TodayScreen() {
                 onDelete={handleDelete}
               />
             ))}
-          </View>
+          </Animated.View>
         )}
       </ScrollView>
 
@@ -135,27 +160,67 @@ export default function TodayScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scroll: { padding: 16 },
-  section: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+  container: { flex: 1, backgroundColor: C.bg },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.bg },
+  scroll: { padding: 16, paddingBottom: 32 },
+
+  goalsCard: {
+    backgroundColor: C.bgElevated,
+    borderRadius: R.lg,
+    padding: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    ...shadow,
   },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111', marginBottom: 12 },
-  addBtn: {
-    backgroundColor: '#111',
-    borderRadius: 12,
-    paddingVertical: 14,
+  goalsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
   },
-  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  progressBadge: {
+    backgroundColor: C.accentLight,
+    borderRadius: R.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: C.accentMid,
+  },
+  progressBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: C.accent,
+  },
+
+  addBtn: {
+    backgroundColor: C.accent,
+    borderRadius: R.md,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    gap: 8,
+    ...shadow,
+  },
+  addBtnPlus: { color: 'rgba(255,255,255,0.8)', fontSize: 20, fontWeight: '300', lineHeight: 22 },
+  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 15, letterSpacing: 0.2 },
+
+  section: {
+    backgroundColor: C.bgElevated,
+    borderRadius: R.lg,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: C.border,
+    ...shadow,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.textPrimary,
+    letterSpacing: 0.1,
+    marginBottom: 12,
+  },
 });
