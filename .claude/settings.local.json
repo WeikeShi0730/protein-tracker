@@ -7,7 +7,8 @@
       "Bash(git commit -m \"Fix seeding skipped when user has no profile row:*)",
       "Bash(git commit:*)",
       "Bash(npx tsc:*)",
-      "mcp__claude_ai_Notion__notion-fetch"
+      "mcp__claude_ai_Notion__notion-fetch",
+      "Bash(npx expo:*)"
     ]
   }
 }
