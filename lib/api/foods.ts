@@ -15,9 +15,12 @@ export async function getFoods(): Promise<Food[]> {
 export async function createFood(
   food: Omit<Food, 'id' | 'user_id' | 'created_at'>
 ): Promise<Food> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
   const { data, error } = await supabase
     .from('foods')
-    .insert(food)
+    .insert({ ...food, user_id: user.id })
     .select()
     .single();
 

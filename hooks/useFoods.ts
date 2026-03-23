@@ -10,26 +10,18 @@ export function useFoods(profile: Profile | null, profileLoading: boolean = fals
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!user) {
-      console.log('[useFoods] no user, skipping load');
-      return;
-    }
+    if (!user) return;
     try {
       setLoading(true);
-      console.log('[useFoods] loading, profile:', profile, 'user:', user.id);
 
       // Seed on first load if not yet seeded (also handles missing profile row)
       if (!profile || !profile.seeded) {
-        console.log('[useFoods] seeding foods...');
         await seedFoodsForUser(user.id);
-        console.log('[useFoods] seeding done');
       }
 
       const data = await getFoods();
-      console.log('[useFoods] getFoods returned:', data.length, 'items');
       setFoods(data);
     } catch (e: any) {
-      console.error('[useFoods] error:', e);
       setError(e.message);
     } finally {
       setLoading(false);

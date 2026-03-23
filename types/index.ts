@@ -5,6 +5,7 @@ export interface Food {
   serving_unit: string;
   calories_per_serving: number;
   protein_per_serving: number;
+  category: string;
   created_at: string;
 }
 

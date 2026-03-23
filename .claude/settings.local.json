@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m \"Fix seed foods not appearing — use maybeSingle\\(\\) and plain insert:*)",
+      "Bash(git push:*)",
+      "Bash(git commit -m \"Fix seeding skipped when user has no profile row:*)",
+      "Bash(git commit:*)",
+      "Bash(npx tsc:*)",
+      "mcp__claude_ai_Notion__notion-fetch"
+    ]
+  }
+}
