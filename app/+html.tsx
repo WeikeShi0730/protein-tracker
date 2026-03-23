@@ -38,4 +38,18 @@ const responsiveBackground = `
 body {
   background-color: #FAF9F6;
   font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  margin: 0;
+}
+
+@media (min-width: 600px) {
+  #root {
+    width: 33.333% !important;
+    max-width: 480px !important;
+    min-width: 360px !important;
+    height: 100vh !important;
+    margin: 0 auto !important;
+    overflow: hidden !important;
+    border-left: 1px solid #E8E2D9;
+    border-right: 1px solid #E8E2D9;
+  }
 }`;

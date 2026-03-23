@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -38,6 +38,14 @@ export default function FoodsScreen() {
   const [deletingFood, setDeletingFood] = useState<Food | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  const hasInitializedCollapse = useRef(false);
+
+  useEffect(() => {
+    if (!loading && foods.length > 0 && !hasInitializedCollapse.current) {
+      hasInitializedCollapse.current = true;
+      setCollapsedCategories(new Set(foods.map(f => f.category || 'Other')));
+    }
+  }, [foods, loading]);
 
   function toggleCategory(cat: string) {
     LayoutAnimation.configureNext({

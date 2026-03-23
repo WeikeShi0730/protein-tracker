@@ -15,39 +15,14 @@ import {
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import type { Food } from '@/types';
 import { C, R } from '@/constants/ClaudeTheme';
-
-interface Props {
-  visible: boolean;
-  foods: Food[];
-  onClose: () => void;
-  onAdd: (entry: { food_id: string; servings: number; logged_at?: string; notes?: string | null }) => Promise<void>;
-}
-
-function buildDateChips() {
-  const chips = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const key = d.toLocaleDateString('en-CA');
-    let label: string;
-    if (i === 0) label = 'Today';
-    else if (i === 1) label = 'Yesterday';
-    else label = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    chips.push({ key, label });
-  }
-  return chips;
-}
-
-const DATE_CHIPS = buildDateChips();
-const TODAY = DATE_CHIPS[0].key;
+import DatePickerCalendar from '@/components/DatePickerCalendar';
 
 export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Props) {
   const [query, setQuery] = useState('');
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [servings, setServings] = useState('1');
   const [notes, setNotes] = useState('');
-  const [selectedDate, setSelectedDate] = useState(TODAY);
-  const isCustomDate = !DATE_CHIPS.some((c) => c.key === selectedDate);
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toLocaleDateString('en-CA'));
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -72,7 +47,7 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
     setSelectedFood(null);
     setServings('1');
     setNotes('');
-    setSelectedDate(DATE_CHIPS[0].key);
+    setSelectedDate(new Date().toLocaleDateString('en-CA'));
     setError(null);
   }
 
@@ -88,8 +63,9 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
     setError(null);
     setLoading(true);
     try {
+      const todayStr = new Date().toLocaleDateString('en-CA');
       let logged_at: string;
-      if (selectedDate === TODAY) {
+      if (selectedDate === todayStr) {
         logged_at = new Date().toISOString();
       } else {
         const [y, m, d] = selectedDate.split('-').map(Number);
@@ -203,40 +179,11 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
 
                   {/* Date */}
                   <Text style={styles.label}>Log date</Text>
-                  <View style={styles.dateChipRow}>
-                    {DATE_CHIPS.map((chip) => (
-                      <TouchableOpacity
-                        key={chip.key}
-                        style={[styles.dateChip, selectedDate === chip.key && styles.dateChipSelected]}
-                        onPress={() => setSelectedDate(chip.key)}
-                      >
-                        <Text style={[styles.dateChipText, selectedDate === chip.key && styles.dateChipTextSelected]}>
-                          {chip.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                    {Platform.OS === 'web'
-                      ? (React as any).createElement('input', {
-                          type: 'date',
-                          max: TODAY,
-                          value: isCustomDate ? selectedDate : '',
-                          onChange: (e: any) => { if (e.target.value) setSelectedDate(e.target.value); },
-                          style: {
-                            paddingTop: 5, paddingBottom: 5, paddingLeft: 12, paddingRight: 12,
-                            borderRadius: 100,
-                            border: `1px solid ${isCustomDate ? C.accent : C.border}`,
-                            backgroundColor: isCustomDate ? C.accent : C.bgSubtle,
-                            color: isCustomDate ? '#fff' : C.textSecondary,
-                            fontSize: 13,
-                            cursor: 'pointer',
-                            outline: 'none',
-                            fontFamily: "'DM Sans', system-ui, sans-serif",
-                            fontWeight: '500',
-                            colorScheme: isCustomDate ? 'dark' : 'light',
-                          },
-                        })
-                      : null}
-                  </View>
+                  <DatePickerCalendar
+                    key={`cal-${visible}`}
+                    selectedDate={selectedDate}
+                    onSelect={setSelectedDate}
+                  />
 
                   {/* Servings */}
                   <Text style={styles.label}>Servings ({selectedFood.serving_unit})</Text>
@@ -414,19 +361,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.bgSubtle,
     marginBottom: 16,
   },
-
-  dateChipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 18 },
-  dateChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: C.border,
-    backgroundColor: C.bgSubtle,
-  },
-  dateChipSelected: { backgroundColor: C.accent, borderColor: C.accent },
-  dateChipText: { fontSize: 13, color: C.textSecondary, fontWeight: '500' },
-  dateChipTextSelected: { color: '#fff' },
 
   preview: {
     backgroundColor: C.accentLight,
