@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager } from 'react-native';
 import type { DayGroup, LogEntry } from '@/types';
 import DailyLogTable from './DailyLogTable';
+import GoalsProgressBar from './GoalsProgressBar';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -21,6 +22,8 @@ export default function PastDayAccordion({ dayGroup, onEdit, onDelete }: Props) 
     setOpen((prev) => !prev);
   }
 
+  const hasGoals = dayGroup.proteinGoal != null && dayGroup.calorieGoal != null;
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.header} onPress={toggle} activeOpacity={0.7}>
@@ -34,6 +37,24 @@ export default function PastDayAccordion({ dayGroup, onEdit, onDelete }: Props) 
       </TouchableOpacity>
       {open && (
         <View style={styles.body}>
+          {hasGoals && (
+            <View style={styles.goals}>
+              <GoalsProgressBar
+                consumed={dayGroup.totalProtein}
+                goal={dayGroup.proteinGoal!}
+                label="Protein"
+                unit="g"
+                color="#3b82f6"
+              />
+              <GoalsProgressBar
+                consumed={dayGroup.totalCalories}
+                goal={dayGroup.calorieGoal!}
+                label="Calories"
+                unit=" kcal"
+                color="#10b981"
+              />
+            </View>
+          )}
           <DailyLogTable entries={dayGroup.entries} onEdit={onEdit} onDelete={onDelete} />
         </View>
       )}
@@ -61,4 +82,11 @@ const styles = StyleSheet.create({
   totals: { fontSize: 13, color: '#6b7280', marginTop: 2 },
   chevron: { fontSize: 12, color: '#9ca3af', marginLeft: 8 },
   body: { paddingHorizontal: 12, paddingBottom: 12 },
+  goals: {
+    paddingTop: 12,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+    marginBottom: 8,
+  },
 });

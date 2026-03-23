@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { getProfile, upsertProfile } from '@/lib/api/profile';
+import { updateTodayGoals } from '@/lib/api/logs';
 import type { Profile } from '@/types';
 
 interface ProfileContextValue {
@@ -42,6 +43,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       daily_protein_goal: protein,
       daily_calorie_goal: calories,
     });
+    await updateTodayGoals(user.id, protein, calories);
     setProfile((prev) =>
       prev ? { ...prev, daily_protein_goal: protein, daily_calorie_goal: calories } : prev
     );

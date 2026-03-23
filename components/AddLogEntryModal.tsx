@@ -86,9 +86,14 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
     setError(null);
     setLoading(true);
     try {
-      // Build logged_at as noon on the selected date in local time → ISO string
-      const [y, m, d] = selectedDate.split('-').map(Number);
-      const logged_at = new Date(y, m - 1, d, 12, 0, 0).toISOString();
+      // Today → actual current time; past dates → noon to avoid timezone date-shifting
+      let logged_at: string;
+      if (selectedDate === TODAY) {
+        logged_at = new Date().toISOString();
+      } else {
+        const [y, m, d] = selectedDate.split('-').map(Number);
+        logged_at = new Date(y, m - 1, d, 12, 0, 0).toISOString();
+      }
       await onAdd({ food_id: selectedFood.id, servings: s, logged_at, notes: notes.trim() || null });
       reset();
       onClose();
@@ -142,6 +147,7 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
               />
             </>
           ) : (
+            <ScrollView style={styles.formScroll} keyboardShouldPersistTaps="handled">
             <View style={styles.formArea}>
               <TouchableOpacity style={styles.selectedFood} onPress={() => setSelectedFood(null)}>
                 <View>
@@ -154,7 +160,7 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
               </TouchableOpacity>
 
               <Text style={styles.label}>Date</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateChipRow} contentContainerStyle={styles.dateChipContent} keyboardShouldPersistTaps="handled">
+              <View style={styles.dateChipRow}>
                 {DATE_CHIPS.map((chip) => (
                   <TouchableOpacity
                     key={chip.key}
@@ -166,23 +172,29 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
                     </Text>
                   </TouchableOpacity>
                 ))}
-                {/* Calendar picker — web uses a native <input type="date"> */}
-                <View style={[styles.dateChip, isCustomDate && styles.dateChipSelected, { overflow: 'hidden' }]}>
-                  <Text style={[styles.dateChipText, isCustomDate && styles.dateChipTextSelected]}>
-                    {customDateLabel}
-                  </Text>
-                  {Platform.OS === 'web' && (React as any).createElement('input', {
-                    type: 'date',
-                    max: TODAY,
-                    value: isCustomDate ? selectedDate : '',
-                    onChange: (e: any) => { if (e.target.value) setSelectedDate(e.target.value); },
-                    style: {
-                      position: 'absolute', inset: 0, opacity: 0,
-                      cursor: 'pointer', width: '100%', height: '100%',
-                    },
-                  })}
-                </View>
-              </ScrollView>
+                {/* Calendar picker */}
+                {Platform.OS === 'web'
+                  ? (React as any).createElement('input', {
+                      type: 'date',
+                      max: TODAY,
+                      value: isCustomDate ? selectedDate : '',
+                      onChange: (e: any) => { if (e.target.value) setSelectedDate(e.target.value); },
+                      style: {
+                        paddingTop: 4, paddingBottom: 4, paddingLeft: 12, paddingRight: 12,
+                        borderRadius: 20,
+                        border: `1px solid ${isCustomDate ? '#111' : '#e5e7eb'}`,
+                        backgroundColor: isCustomDate ? '#111' : '#f9fafb',
+                        color: isCustomDate ? '#fff' : '#374151',
+                        fontSize: 13, cursor: 'pointer', outline: 'none',
+                        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                        fontWeight: '400',
+                        letterSpacing: 'normal',
+                        lineHeight: '20px',
+                        colorScheme: isCustomDate ? 'dark' : 'light',
+                      },
+                    })
+                  : null}
+              </View>
 
               <Text style={styles.label}>Servings ({selectedFood.serving_unit})</Text>
               <TextInput
@@ -221,6 +233,7 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
                 <Text style={styles.addBtnText}>{loading ? 'Adding...' : 'Add Entry'}</Text>
               </TouchableOpacity>
             </View>
+            </ScrollView>
           )}
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -246,7 +259,8 @@ const styles = StyleSheet.create({
   foodRow: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
   foodName: { fontSize: 15, fontWeight: '500', color: '#111' },
   foodMeta: { fontSize: 13, color: '#6b7280', marginTop: 2 },
-  formArea: { padding: 16, flex: 1 },
+  formScroll: { flex: 1 },
+  formArea: { padding: 16 },
   selectedFood: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     backgroundColor: '#f3f4f6', borderRadius: 10, padding: 12, marginBottom: 16,
@@ -259,8 +273,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 8,
     paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: '#111', marginBottom: 14,
   },
-  dateChipRow: { height: 36, marginBottom: 14 },
-  dateChipContent: { flexDirection: 'row', alignItems: 'center' },
+  dateChipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
   dateChip: {
     paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20,
     borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#f9fafb', marginRight: 8,

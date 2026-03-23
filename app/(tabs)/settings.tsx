@@ -11,6 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Pressable,
+  Modal,
 } from 'react-native';
 import { useProfile } from '@/contexts/ProfileContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,6 +25,9 @@ export default function SettingsScreen() {
   const [calories, setCalories] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -35,40 +40,39 @@ export default function SettingsScreen() {
     const p = parseInt(protein, 10);
     const c = parseInt(calories, 10);
     if (isNaN(p) || p <= 0) {
-      Alert.alert('Invalid Input', 'Enter a valid protein goal (g).');
+      setSaveError('Enter a valid protein goal (g).');
       return;
     }
     if (isNaN(c) || c <= 0) {
-      Alert.alert('Invalid Input', 'Enter a valid calorie goal.');
+      setSaveError('Enter a valid calorie goal.');
       return;
     }
+    setSaveError(null);
     setSaving(true);
     try {
       await updateGoals(p, c);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e: any) {
-      Alert.alert('Error', e.message);
+      setSaveError(e.message);
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleSignOut() {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await signOut();
-          } catch (e: any) {
-            Alert.alert('Error', e.message);
-          }
-        },
-      },
-    ]);
+  async function confirmSignOut() {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } catch (e: any) {
+      setShowSignOutConfirm(false);
+      setSigningOut(false);
+      if (Platform.OS === 'web') {
+        setSaveError(e.message);
+      } else {
+        Alert.alert('Error', e.message);
+      }
+    }
   }
 
   if (loading) {
@@ -88,6 +92,8 @@ export default function SettingsScreen() {
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Daily Goals</Text>
+
+            {!!saveError && <Text style={styles.error}>{saveError}</Text>}
 
             <Text style={styles.label}>Protein Goal (g)</Text>
             <TextInput
@@ -122,17 +128,47 @@ export default function SettingsScreen() {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Account</Text>
-            <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
+            <TouchableOpacity style={styles.signOutBtn} onPress={() => setShowSignOutConfirm(true)}>
               <Text style={styles.signOutText}>Sign Out</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal visible={showSignOutConfirm} transparent animationType="fade" onRequestClose={() => setShowSignOutConfirm(false)}>
+        <Pressable style={styles.overlay} onPress={() => !signingOut && setShowSignOutConfirm(false)}>
+          <Pressable style={styles.dialog}>
+            <Text style={styles.dialogTitle}>Sign Out</Text>
+            <Text style={styles.dialogMessage}>Are you sure you want to sign out?</Text>
+            <View style={styles.dialogActions}>
+              <TouchableOpacity
+                style={styles.dialogCancel}
+                onPress={() => setShowSignOutConfirm(false)}
+                disabled={signingOut}
+              >
+                <Text style={styles.dialogCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.dialogConfirm, signingOut && styles.disabled]}
+                onPress={confirmSignOut}
+                disabled={signingOut}
+              >
+                {signingOut ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.dialogConfirmText}>Sign Out</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  error: { color: '#dc2626', fontSize: 13, marginBottom: 12 },
   container: { flex: 1, backgroundColor: '#f9fafb' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll: { padding: 16 },
@@ -175,4 +211,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signOutText: { color: '#dc2626', fontSize: 15, fontWeight: '600' },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dialog: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    marginHorizontal: 32,
+    width: '100%',
+    maxWidth: 360,
+  },
+  dialogTitle: { fontSize: 17, fontWeight: '700', color: '#111', marginBottom: 8 },
+  dialogMessage: { fontSize: 14, color: '#6b7280', lineHeight: 20, marginBottom: 20 },
+  dialogActions: { flexDirection: 'row', gap: 10 },
+  dialogCancel: {
+    flex: 1, paddingVertical: 11, backgroundColor: '#f3f4f6',
+    borderRadius: 10, alignItems: 'center',
+  },
+  dialogCancelText: { fontSize: 15, fontWeight: '600', color: '#374151' },
+  dialogConfirm: {
+    flex: 1, paddingVertical: 11, backgroundColor: '#dc2626',
+    borderRadius: 10, alignItems: 'center',
+  },
+  dialogConfirmText: { fontSize: 15, fontWeight: '600', color: '#fff' },
+  disabled: { opacity: 0.6 },
 });

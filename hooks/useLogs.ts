@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { getLogsForRange, createLog, updateLog, deleteLog } from '@/lib/api/logs';
-import type { LogEntry, DayGroup } from '@/types';
+import type { LogEntry, DayGroup, Profile } from '@/types';
 
 function startOfDay(d: Date): Date {
   const result = new Date(d);
@@ -35,11 +35,31 @@ function computeTotals(entries: LogEntry[]) {
   );
 }
 
-export function useLogs() {
+export function useLogs(profile: Profile | null) {
   const { user } = useAuth();
   const [allEntries, setAllEntries] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const prevGoalsRef = useRef<{ protein: number; calories: number } | null>(null);
+
+  // When goals change, update today's entries in local state to match
+  useEffect(() => {
+    if (!profile) return;
+    const { daily_protein_goal: protein, daily_calorie_goal: calories } = profile;
+    const prev = prevGoalsRef.current;
+    if (prev && prev.protein === protein && prev.calories === calories) return;
+    prevGoalsRef.current = { protein, calories };
+    if (!prev) return; // skip on first mount — entries just loaded from DB
+    const todayKey = new Date().toLocaleDateString('en-CA');
+    setAllEntries((entries) =>
+      entries.map((e) => {
+        if (new Date(e.logged_at).toLocaleDateString('en-CA') === todayKey) {
+          return { ...e, protein_goal: protein, calorie_goal: calories };
+        }
+        return e;
+      })
+    );
+  }, [profile?.daily_protein_goal, profile?.daily_calorie_goal]);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -60,7 +80,6 @@ export function useLogs() {
     load();
   }, [load]);
 
-  // Group entries by local calendar date
   const todayKey = localDateKey(new Date());
 
   const grouped = allEntries.reduce<Record<string, LogEntry[]>>((acc, entry) => {
@@ -71,7 +90,6 @@ export function useLogs() {
 
   const todayLogs = grouped[todayKey] ?? [];
 
-  // Build past 7 days (not including today), sorted most recent first
   const pastDays: DayGroup[] = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (i + 1));
@@ -80,11 +98,16 @@ export function useLogs() {
     .filter((key) => grouped[key])
     .map((key) => {
       const entries = grouped[key];
+      // Goals are snapshotted on each entry at log time. Use the first entry that has them.
+      // No fallback to current profile — past goals must come from stored data only.
+      const snap = entries.find((e) => e.protein_goal != null && e.calorie_goal != null);
       return {
         date: key,
         label: formatDayLabel(key),
         entries,
         ...computeTotals(entries),
+        proteinGoal: snap?.protein_goal ?? undefined,
+        calorieGoal: snap?.calorie_goal ?? undefined,
       };
     });
 
@@ -95,7 +118,12 @@ export function useLogs() {
     notes?: string | null;
   }) {
     if (!user) throw new Error('Not authenticated');
-    const created = await createLog({ ...entry, user_id: user.id });
+    const created = await createLog({
+      ...entry,
+      user_id: user.id,
+      protein_goal: profile?.daily_protein_goal ?? null,
+      calorie_goal: profile?.daily_calorie_goal ?? null,
+    });
     setAllEntries((prev) => [created, ...prev]);
   }
 

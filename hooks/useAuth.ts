@@ -37,5 +37,10 @@ export function useAuth() {
     if (error) throw error;
   }
 
-  return { session, user, loading, signIn, signUp, signOut };
+  async function signInWithOAuth(provider: 'google' | 'apple') {
+    const { error } = await supabase.auth.signInWithOAuth({ provider });
+    if (error) throw error;
+  }
+
+  return { session, user, loading, signIn, signUp, signOut, signInWithOAuth };
 }

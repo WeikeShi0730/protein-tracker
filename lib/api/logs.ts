@@ -19,6 +19,8 @@ export async function createLog(entry: {
   servings: number;
   logged_at?: string;
   notes?: string | null;
+  protein_goal?: number | null;
+  calorie_goal?: number | null;
 }): Promise<LogEntry> {
   const { data, error } = await supabase
     .from('daily_logs')
@@ -41,6 +43,26 @@ export async function updateLog(
     .from('daily_logs')
     .update(updates)
     .eq('id', id);
+
+  if (error) throw error;
+}
+
+export async function updateTodayGoals(
+  userId: string,
+  protein_goal: number,
+  calorie_goal: number
+): Promise<void> {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+
+  const { error } = await supabase
+    .from('daily_logs')
+    .update({ protein_goal, calorie_goal })
+    .eq('user_id', userId)
+    .gte('logged_at', start.toISOString())
+    .lte('logged_at', end.toISOString());
 
   if (error) throw error;
 }

@@ -17,6 +17,8 @@ export interface LogEntry {
   logged_at: string;
   notes: string | null;
   created_at: string;
+  protein_goal: number | null;
+  calorie_goal: number | null;
   foods: {
     name: string;
     serving_unit: string;
@@ -39,4 +41,6 @@ export interface DayGroup {
   entries: LogEntry[];
   totalProtein: number;
   totalCalories: number;
+  proteinGoal?: number;
+  calorieGoal?: number;
 }

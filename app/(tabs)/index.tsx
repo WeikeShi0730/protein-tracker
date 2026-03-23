@@ -22,7 +22,7 @@ import type { LogEntry } from '@/types';
 export default function TodayScreen() {
   const { profile, loading: profileLoading } = useProfile();
   const { foods, loading: foodsLoading } = useFoods(profile, profileLoading);
-  const { todayLogs, pastDays, loading: logsLoading, addLog, editLog, removeLog, reload } = useLogs();
+  const { todayLogs, pastDays, loading: logsLoading, addLog, editLog, removeLog, reload } = useLogs(profile);
 
   const [showAdd, setShowAdd] = useState(false);
   const [editEntry, setEditEntry] = useState<LogEntry | null>(null);
@@ -86,14 +86,14 @@ export default function TodayScreen() {
           />
         </View>
 
+        {/* Add Entry Button */}
+        <TouchableOpacity style={styles.addBtn} onPress={() => setShowAdd(true)}>
+          <Text style={styles.addBtnText}>+ Add Food Entry</Text>
+        </TouchableOpacity>
+
         {/* Today's Log */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Today</Text>
-            <TouchableOpacity style={styles.addBtn} onPress={() => setShowAdd(true)}>
-              <Text style={styles.addBtnText}>+ Add</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.sectionTitle}>Today</Text>
           <DailyLogTable
             entries={todayLogs}
             onEdit={(entry) => setEditEntry(entry)}
@@ -149,19 +149,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111', marginBottom: 12 },
   addBtn: {
     backgroundColor: '#111',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginBottom: 12,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
 });
