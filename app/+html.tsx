@@ -41,6 +41,15 @@ body {
   margin: 0;
 }
 
+input, textarea, select {
+  font-size: 16px !important;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 @media (min-width: 600px) {
   #root {
     width: 33.333% !important;
@@ -52,4 +61,5 @@ body {
     border-left: 1px solid #E8E2D9;
     border-right: 1px solid #E8E2D9;
   }
+
 }`;

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Modal,
   View,
   Text,
   TextInput,
@@ -10,6 +9,7 @@ import {
   Platform,
   SafeAreaView,
 } from 'react-native';
+import PlatformModal from '@/components/PlatformModal';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { LogEntry } from '@/types';
 import { C, R } from '@/constants/ClaudeTheme';
@@ -62,10 +62,9 @@ export default function EditLogEntryModal({ visible, entry, onClose, onSave }: P
     : null;
 
   return (
-    <Modal
+    <PlatformModal
       visible={visible}
       animationType="slide"
-      presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.container}>
@@ -146,7 +145,7 @@ export default function EditLogEntryModal({ visible, entry, onClose, onSave }: P
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </Modal>
+    </PlatformModal>
   );
 }
 

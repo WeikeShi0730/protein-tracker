@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   chevronWrapOpen: {
     transform: [{ rotate: '90deg' }],
   },
-  chevron: { fontSize: 16, color: C.textSecondary, lineHeight: 24 },
+  chevron: { fontSize: 16, color: C.textSecondary, lineHeight: 16, includeFontPadding: false },
 
   body: { paddingHorizontal: 12, paddingBottom: 12, paddingTop: 4 },
   goals: {

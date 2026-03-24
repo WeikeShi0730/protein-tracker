@@ -5,7 +5,6 @@ import {
   SectionList,
   TouchableOpacity,
   StyleSheet,
-  Modal,
   SafeAreaView,
   ActivityIndicator,
   Alert,
@@ -22,6 +21,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 import { useNavigation } from 'expo-router';
 import { useFoods } from '@/contexts/FoodsContext';
 import FoodForm from '@/components/FoodForm';
+import PlatformModal from '@/components/PlatformModal';
 import type { Food } from '@/types';
 import { C, R, shadow, shadowStrong } from '@/constants/ClaudeTheme';
 
@@ -199,7 +199,7 @@ export default function FoodsScreen() {
       />
 
       {/* Delete confirm for card-level delete */}
-      <Modal visible={!!deletingFood} transparent animationType="fade" onRequestClose={() => setDeletingFood(null)}>
+      <PlatformModal visible={!!deletingFood} transparent animationType="fade" onRequestClose={() => setDeletingFood(null)}>
         <Pressable style={styles.overlay} onPress={() => setDeletingFood(null)}>
           <Pressable style={styles.dialog}>
             <Text style={styles.dialogTitle}>Delete Food</Text>
@@ -216,10 +216,10 @@ export default function FoodsScreen() {
             </View>
           </Pressable>
         </Pressable>
-      </Modal>
+      </PlatformModal>
 
       {/* Add / Edit modal */}
-      <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeModal}>
+      <PlatformModal visible={modalVisible} animationType="slide" onRequestClose={closeModal}>
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <View style={styles.modalDrag} />
@@ -261,7 +261,7 @@ export default function FoodsScreen() {
             </Pressable>
           )}
         </SafeAreaView>
-      </Modal>
+      </PlatformModal>
     </SafeAreaView>
   );
 }

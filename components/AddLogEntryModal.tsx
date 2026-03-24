@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import {
-  Modal,
   View,
   Text,
   TextInput,
@@ -12,6 +11,7 @@ import {
   SafeAreaView,
   ScrollView,
 } from 'react-native';
+import PlatformModal from '@/components/PlatformModal';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import type { Food } from '@/types';
 import { C, R } from '@/constants/ClaudeTheme';
@@ -89,10 +89,9 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
     : null;
 
   return (
-    <Modal
+    <PlatformModal
       visible={visible}
       animationType="slide"
-      presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
       <SafeAreaView style={styles.container}>
@@ -240,7 +239,7 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
           )}
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </Modal>
+    </PlatformModal>
   );
 }
 
