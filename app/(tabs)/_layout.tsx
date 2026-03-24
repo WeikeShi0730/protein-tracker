@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { View, Text, StyleSheet } from 'react-native';
 import { ProfileProvider } from '@/contexts/ProfileContext';
+import { FoodsProvider } from '@/contexts/FoodsContext';
 import { C } from '@/constants/ClaudeTheme';
 
 function TabIcon({ emoji, label, focused }: { emoji: string; label: string; focused: boolean }) {
@@ -14,6 +15,7 @@ function TabIcon({ emoji, label, focused }: { emoji: string; label: string; focu
 export default function TabLayout() {
   return (
     <ProfileProvider>
+      <FoodsProvider>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: C.accent,
@@ -68,6 +70,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
+      </FoodsProvider>
     </ProfileProvider>
   );
 }

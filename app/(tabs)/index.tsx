@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useProfile } from '@/contexts/ProfileContext';
-import { useFoods } from '@/hooks/useFoods';
+import { useFoods } from '@/contexts/FoodsContext';
 import { useLogs } from '@/hooks/useLogs';
 import GoalsProgressBar from '@/components/GoalsProgressBar';
 import DailyLogTable from '@/components/DailyLogTable';
@@ -23,7 +23,7 @@ import { C, R, shadow } from '@/constants/ClaudeTheme';
 
 export default function TodayScreen() {
   const { profile, loading: profileLoading } = useProfile();
-  const { foods, loading: foodsLoading } = useFoods(profile, profileLoading);
+  const { foods, loading: foodsLoading } = useFoods();
   const { todayLogs, pastDays, loading: logsLoading, addLog, editLog, removeLog, reload } = useLogs(profile);
 
   const [showAdd, setShowAdd] = useState(false);

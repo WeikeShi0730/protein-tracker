@@ -20,8 +20,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 import { useNavigation } from 'expo-router';
-import { useProfile } from '@/contexts/ProfileContext';
-import { useFoods } from '@/hooks/useFoods';
+import { useFoods } from '@/contexts/FoodsContext';
 import FoodForm from '@/components/FoodForm';
 import type { Food } from '@/types';
 import { C, R, shadow, shadowStrong } from '@/constants/ClaudeTheme';
@@ -29,8 +28,7 @@ import { C, R, shadow, shadowStrong } from '@/constants/ClaudeTheme';
 type FoodInput = Omit<Food, 'id' | 'user_id' | 'created_at'>;
 
 export default function FoodsScreen() {
-  const { profile, loading: profileLoading } = useProfile();
-  const { foods, loading, error, addFood, editFood, removeFood } = useFoods(profile, profileLoading);
+  const { foods, loading, error, addFood, editFood, removeFood } = useFoods();
 
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
