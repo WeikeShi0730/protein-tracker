@@ -23,6 +23,7 @@ export default function ResetPasswordScreen() {
   const [loading, setLoading] = useState(false);
 
   async function handleUpdate() {
+    if (loading) return;
     if (password.length < 6) {
       setError('Password must be at least 6 characters.');
       return;
@@ -72,6 +73,7 @@ export default function ResetPasswordScreen() {
             onChangeText={setPassword}
             secureTextEntry
             autoFocus
+            autoComplete="new-password"
           />
 
           <Text style={styles.label}>Confirm Password</Text>
@@ -82,6 +84,7 @@ export default function ResetPasswordScreen() {
             value={confirm}
             onChangeText={setConfirm}
             secureTextEntry
+            autoComplete="new-password"
           />
 
           <TouchableOpacity
