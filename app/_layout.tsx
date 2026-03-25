@@ -21,7 +21,9 @@ export default function RootLayout() {
     if (loading) return;
 
     if (recoveryMode) {
-      router.replace('/(auth)/reset-password');
+      if (segments.join('/') !== '(auth)/reset-password') {
+        router.replace('/(auth)/reset-password');
+      }
       return;
     }
 
