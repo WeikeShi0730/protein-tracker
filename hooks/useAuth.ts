@@ -22,7 +22,7 @@ export function useAuth() {
       if (_event === 'PASSWORD_RECOVERY') {
         setRecoveryMode(true);
       }
-      if (_event === 'USER_UPDATED') {
+      if (_event === 'USER_UPDATED' || _event === 'SIGNED_OUT') {
         setRecoveryMode(false);
       }
     });
@@ -51,7 +51,7 @@ export function useAuth() {
   }
 
   async function requestPasswordReset(email: string) {
-    const redirectTo = Platform.OS === 'web'
+    const redirectTo = Platform.OS === 'web' && typeof window !== 'undefined'
       ? window.location.origin + '/reset-password'
       : undefined;
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
