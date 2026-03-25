@@ -72,6 +72,7 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
         onChangeText={setName}
         placeholder="e.g. Chicken Breast"
         placeholderTextColor={C.textPlaceholder}
+        autoFocus
       />
 
       <Text style={styles.label}>Category</Text>

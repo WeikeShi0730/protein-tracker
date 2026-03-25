@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Platform, View, Modal, StyleSheet, Animated } from 'react-native';
+import { Platform, View, Modal, StyleSheet, Animated, PanResponder } from 'react-native';
+import { C } from '@/constants/ClaudeTheme';
 
 interface Props {
   visible: boolean;
@@ -18,6 +19,8 @@ export default function PlatformModal({
 }: Props) {
   const [mounted, setMounted] = useState(visible);
   const slideY = useRef(new Animated.Value(visible ? 0 : 800)).current;
+  const onCloseRef = useRef(onRequestClose);
+  onCloseRef.current = onRequestClose;
 
   useEffect(() => {
     if (visible) {
@@ -39,6 +42,29 @@ export default function PlatformModal({
     }
   }, [visible]);
 
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gs) => gs.dy > 5,
+      onPanResponderMove: (_, gs) => {
+        if (gs.dy > 0) slideY.setValue(gs.dy);
+      },
+      onPanResponderRelease: (_, gs) => {
+        if (gs.dy > 80 || gs.vy > 0.3) {
+          Animated.timing(slideY, {
+            toValue: 800,
+            duration: 200,
+            useNativeDriver: false,
+          }).start(() => onCloseRef.current());
+        } else {
+          Animated.spring(slideY, { toValue: 0, useNativeDriver: false }).start();
+        }
+      },
+    })
+  ).current;
+
+  const showDragIndicator = animationType === 'slide' && !transparent;
+
   if (Platform.OS !== 'web') {
     return (
       <Modal
@@ -48,6 +74,11 @@ export default function PlatformModal({
         transparent={transparent}
         onRequestClose={onRequestClose}
       >
+        {showDragIndicator && (
+          <View style={styles.dragZone}>
+            <View style={styles.dragIndicator} />
+          </View>
+        )}
         {children}
       </Modal>
     );
@@ -62,6 +93,11 @@ export default function PlatformModal({
         animationType === 'slide' && { transform: [{ translateY: slideY }] },
       ]}
     >
+      {showDragIndicator && (
+        <View {...panResponder.panHandlers} style={styles.dragZone}>
+          <View style={styles.dragIndicator} />
+        </View>
+      )}
       {children}
     </Animated.View>
   );
@@ -75,5 +111,17 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 1000,
+  },
+  dragZone: {
+    backgroundColor: C.bgElevated,
+    alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 12,
+  },
+  dragIndicator: {
+    width: 36,
+    height: 4,
+    backgroundColor: C.border,
+    borderRadius: 2,
   },
 });

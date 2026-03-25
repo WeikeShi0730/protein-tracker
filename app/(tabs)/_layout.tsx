@@ -65,8 +65,8 @@ export default function TabLayout() {
         <Tabs.Screen
           name="settings"
           options={{
-            title: 'Settings',
-            tabBarIcon: ({ focused }) => <TabIcon emoji="⚙️" label="Settings" focused={focused} />,
+            title: 'Me',
+            tabBarIcon: ({ focused }) => <TabIcon emoji="👤" label="Me" focused={focused} />,
           }}
         />
       </Tabs>

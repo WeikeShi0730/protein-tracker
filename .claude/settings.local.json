@@ -9,7 +9,8 @@
       "Bash(npx tsc:*)",
       "mcp__claude_ai_Notion__notion-fetch",
       "Bash(npx expo:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(ls:*)"
     ]
   }
 }

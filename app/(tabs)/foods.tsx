@@ -222,12 +222,15 @@ export default function FoodsScreen() {
       <PlatformModal visible={modalVisible} animationType="slide" onRequestClose={closeModal}>
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <View style={styles.modalDrag} />
             <View style={styles.modalHeaderRow}>
               <Text style={styles.modalTitle}>{editingFood ? 'Edit Food' : 'Add Food'}</Text>
-              {!!editingFood && (
+              {!!editingFood ? (
                 <TouchableOpacity onPress={() => setShowDeleteConfirm(true)}>
                   <Text style={styles.modalDeleteBtn}>Delete</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity onPress={closeModal}>
+                  <Text style={styles.modalCancelBtn}>Cancel</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -406,15 +409,6 @@ const styles = StyleSheet.create({
     borderBottomColor: C.border,
     paddingBottom: 14,
   },
-  modalDrag: {
-    width: 36,
-    height: 4,
-    backgroundColor: C.border,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 10,
-    marginBottom: 12,
-  },
   modalHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -423,5 +417,6 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontSize: 18, fontWeight: '700', color: C.textPrimary },
   modalDeleteBtn: { fontSize: 14, fontWeight: '600', color: C.error },
+  modalCancelBtn: { fontSize: 15, fontWeight: '500', color: C.textSecondary },
   modalBody: { padding: 20, flex: 1 },
 });

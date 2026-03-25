@@ -73,7 +73,6 @@ export default function EditLogEntryModal({ visible, entry, onClose, onSave }: P
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <View style={styles.header}>
-            <View style={styles.headerDrag} />
             <View style={styles.headerRow}>
               <Text style={styles.title}>Edit Entry</Text>
               <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
@@ -156,15 +155,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: C.border,
     paddingBottom: 14,
-  },
-  headerDrag: {
-    width: 36,
-    height: 4,
-    backgroundColor: C.border,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 10,
-    marginBottom: 12,
   },
   headerRow: {
     flexDirection: 'row',

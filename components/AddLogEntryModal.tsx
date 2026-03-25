@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,14 @@ import DatePickerCalendar from '@/components/DatePickerCalendar';
 export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Props) {
   const [query, setQuery] = useState('');
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
+  const searchInputRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (visible && !selectedFood) {
+      const t = setTimeout(() => searchInputRef.current?.focus(), 400);
+      return () => clearTimeout(t);
+    }
+  }, [visible, selectedFood]);
   const [servings, setServings] = useState('1');
   const [notes, setNotes] = useState('');
   const [selectedDate, setSelectedDate] = useState(() => new Date().toLocaleDateString('en-CA'));
@@ -101,7 +109,6 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
         >
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.headerDrag} />
             <View style={styles.headerRow}>
               <Text style={styles.title}>Add Entry</Text>
               <TouchableOpacity style={styles.cancelBtn} onPress={handleClose}>
@@ -121,12 +128,12 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
               <View style={styles.searchWrapper}>
                 <Text style={styles.searchIcon}>⌕</Text>
                 <TextInput
+                  ref={searchInputRef}
                   style={styles.searchInput}
                   placeholder="Search foods…"
                   placeholderTextColor={C.textPlaceholder}
                   value={query}
                   onChangeText={setQuery}
-                  autoFocus
                 />
                 {query.length > 0 && (
                   <TouchableOpacity onPress={() => setQuery('')} style={styles.clearBtn}>
@@ -250,15 +257,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: C.border,
     paddingBottom: 14,
-  },
-  headerDrag: {
-    width: 36,
-    height: 4,
-    backgroundColor: C.border,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 10,
-    marginBottom: 12,
   },
   headerRow: {
     flexDirection: 'row',
