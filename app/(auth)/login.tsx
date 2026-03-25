@@ -96,6 +96,12 @@ export default function LoginScreen() {
             autoComplete="password"
           />
 
+          <Link href="/(auth)/forgot-password" asChild>
+            <TouchableOpacity style={styles.forgotRow}>
+              <Text style={styles.forgotText}>Forgot password?</Text>
+            </TouchableOpacity>
+          </Link>
+
           <TouchableOpacity
             style={[styles.primaryBtn, (loading || !!oauthLoading) && styles.disabled]}
             onPress={handleLogin}
@@ -261,4 +267,7 @@ const styles = StyleSheet.create({
   linkAccent: { fontWeight: '700', color: C.accent },
 
   disabled: { opacity: 0.5 },
+
+  forgotRow: { alignSelf: 'flex-end', paddingVertical: 4, marginBottom: 8 },
+  forgotText: { fontSize: 13, color: C.accent, fontWeight: '500' },
 });
