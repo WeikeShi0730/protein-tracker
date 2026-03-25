@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { session, loading } = useAuth();
+  const { session, loading, recoveryMode } = useAuth();
   const router = useRouter();
   const segments = useSegments();
 
@@ -20,6 +20,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (loading) return;
 
+    if (recoveryMode) {
+      router.replace('/(auth)/reset-password');
+      return;
+    }
+
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!session && !inAuthGroup) {
@@ -27,7 +32,7 @@ export default function RootLayout() {
     } else if (session && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [session, loading, segments]);
+  }, [session, loading, segments, recoveryMode]);
 
   if (loading) return null;
 
