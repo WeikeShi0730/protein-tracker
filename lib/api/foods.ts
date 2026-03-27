@@ -49,7 +49,21 @@ export async function deleteFood(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function seedFoodsForUser(userId: string): Promise<void> {
+// Deduplicates concurrent calls for the same user within the same session.
+const _seedingInProgress = new Map<string, Promise<void>>();
+
+export function seedFoodsForUser(userId: string): Promise<void> {
+  const inflight = _seedingInProgress.get(userId);
+  if (inflight) return inflight;
+
+  const promise = _doSeedFoodsForUser(userId).finally(() => {
+    _seedingInProgress.delete(userId);
+  });
+  _seedingInProgress.set(userId, promise);
+  return promise;
+}
+
+async function _doSeedFoodsForUser(userId: string): Promise<void> {
   // Check profile seeded flag first
   const { data: profile } = await supabase
     .from('profiles')
@@ -68,7 +82,8 @@ export async function seedFoodsForUser(userId: string): Promise<void> {
   if (!count || count === 0) {
     const rows = SEED_FOODS.map((f) => ({ ...f, user_id: userId }));
     const { error: insertError } = await supabase.from('foods').insert(rows);
-    if (insertError) throw insertError;
+    // 23505 = unique_violation: a concurrent insert already seeded these foods
+    if (insertError && insertError.code !== '23505') throw insertError;
   }
 
   // Upsert profile row so it works even if the row doesn't exist yet
