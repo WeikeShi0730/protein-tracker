@@ -40,6 +40,8 @@ export function useLogs(profile: Profile | null) {
   const [allEntries, setAllEntries] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [olderEntries, setOlderEntries] = useState<LogEntry[]>([]);
+  const [olderLoading, setOlderLoading] = useState(false);
   const prevGoalsRef = useRef<{ protein: number; calories: number } | null>(null);
 
   // When goals change, update today's entries in local state to match
@@ -134,10 +136,46 @@ export function useLogs(profile: Profile | null) {
     );
   }
 
+  const loadOlderDays = useCallback(async () => {
+    if (!user) return;
+    try {
+      setOlderLoading(true);
+      const to = endOfDay(new Date(Date.now() - 8 * 24 * 60 * 60 * 1000));
+      const from = new Date('2020-01-01');
+      const data = await getLogsForRange(from, to);
+      setOlderEntries(data);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setOlderLoading(false);
+    }
+  }, [user]);
+
   async function removeLog(id: string) {
     await deleteLog(id);
     setAllEntries((prev) => prev.filter((e) => e.id !== id));
   }
 
-  return { todayLogs, pastDays, loading, error, addLog, editLog, removeLog, reload: load };
+  const olderGrouped = olderEntries.reduce<Record<string, LogEntry[]>>((acc, entry) => {
+    const key = localDateKey(new Date(entry.logged_at));
+    (acc[key] ??= []).push(entry);
+    return acc;
+  }, {});
+
+  const olderDays: DayGroup[] = Object.keys(olderGrouped)
+    .sort((a, b) => b.localeCompare(a))
+    .map((key) => {
+      const entries = olderGrouped[key];
+      const snap = entries.find((e) => e.protein_goal != null && e.calorie_goal != null);
+      return {
+        date: key,
+        label: formatDayLabel(key),
+        entries,
+        ...computeTotals(entries),
+        proteinGoal: snap?.protein_goal ?? undefined,
+        calorieGoal: snap?.calorie_goal ?? undefined,
+      };
+    });
+
+  return { todayLogs, pastDays, olderDays, olderLoading, loading, error, addLog, editLog, removeLog, reload: load, loadOlderDays };
 }

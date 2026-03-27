@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,14 @@ import {
   RefreshControl,
   ActivityIndicator,
   SafeAreaView,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useProfile } from '@/contexts/ProfileContext';
 import { useFoods } from '@/contexts/FoodsContext';
@@ -24,11 +31,27 @@ import { C, R, shadow } from '@/constants/ClaudeTheme';
 export default function TodayScreen() {
   const { profile, loading: profileLoading } = useProfile();
   const { foods, loading: foodsLoading } = useFoods();
-  const { todayLogs, pastDays, loading: logsLoading, addLog, editLog, removeLog, reload } = useLogs(profile);
+  const { todayLogs, pastDays, olderDays, olderLoading, loading: logsLoading, addLog, editLog, removeLog, reload, loadOlderDays } = useLogs(profile);
 
   const [showAdd, setShowAdd] = useState(false);
   const [editEntry, setEditEntry] = useState<LogEntry | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [showOlder, setShowOlder] = useState(false);
+  const olderLoadedRef = useRef(false);
+
+  function toggleOlder() {
+    LayoutAnimation.configureNext({
+      duration: 260,
+      create: { type: 'easeInEaseOut', property: 'opacity' },
+      update: { type: 'spring', springDamping: 0.8 },
+      delete: { type: 'easeInEaseOut', property: 'opacity' },
+    });
+    if (!olderLoadedRef.current) {
+      olderLoadedRef.current = true;
+      loadOlderDays();
+    }
+    setShowOlder((prev) => !prev);
+  }
 
   const loading = profileLoading || foodsLoading || logsLoading;
 
@@ -140,6 +163,34 @@ export default function TodayScreen() {
             ))}
           </Animated.View>
         )}
+
+        {/* Older History */}
+        <Animated.View entering={FadeIn.delay(280).duration(350)} style={styles.section}>
+          <TouchableOpacity style={styles.olderHeader} onPress={toggleOlder} activeOpacity={0.7}>
+            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Older</Text>
+            <View style={[styles.chevronWrap, showOlder && styles.chevronWrapOpen]}>
+              <Text style={styles.chevron}>›</Text>
+            </View>
+          </TouchableOpacity>
+          {showOlder && (
+            olderLoading ? (
+              <ActivityIndicator size="small" color={C.accent} style={styles.olderLoader} />
+            ) : olderDays.length === 0 ? (
+              <Text style={styles.olderEmpty}>No older entries</Text>
+            ) : (
+              <View style={styles.olderContent}>
+                {olderDays.map((day) => (
+                  <PastDayAccordion
+                    key={day.date}
+                    dayGroup={day}
+                    onEdit={(entry) => setEditEntry(entry)}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </View>
+            )
+          )}
+        </Animated.View>
       </ScrollView>
 
       <AddLogEntryModal
@@ -223,4 +274,28 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
     marginBottom: 12,
   },
+
+  olderHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 0,
+  },
+  olderLoader: { marginTop: 12, marginBottom: 4 },
+  olderEmpty: { fontSize: 13, color: C.textMuted, marginTop: 12 },
+  olderContent: { marginTop: 12 },
+
+  chevronWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: C.bgMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '0deg' }],
+  },
+  chevronWrapOpen: {
+    transform: [{ rotate: '90deg' }],
+  },
+  chevron: { fontSize: 16, color: C.textSecondary, lineHeight: 16, includeFontPadding: false },
 });
