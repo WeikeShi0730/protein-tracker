@@ -18,14 +18,14 @@ export default function PlatformModal({
   children,
 }: Props) {
   const [mounted, setMounted] = useState(visible);
-  const slideY = useRef(new Animated.Value(visible ? 0 : 800)).current;
+  const slideY = useRef(new Animated.Value(visible ? 0 : 1000)).current;
   const onCloseRef = useRef(onRequestClose);
   onCloseRef.current = onRequestClose;
 
   useEffect(() => {
     if (visible) {
       setMounted(true);
-      slideY.setValue(800);
+      slideY.setValue(1000);
       Animated.timing(slideY, {
         toValue: 0,
         duration: 350,
@@ -33,7 +33,7 @@ export default function PlatformModal({
       }).start();
     } else {
       Animated.timing(slideY, {
-        toValue: 800,
+        toValue: 1000,
         duration: 280,
         useNativeDriver: false,
       }).start(({ finished }) => {
@@ -52,7 +52,7 @@ export default function PlatformModal({
       onPanResponderRelease: (_, gs) => {
         if (gs.dy > 80 || gs.vy > 0.3) {
           Animated.timing(slideY, {
-            toValue: 800,
+            toValue: 1000,
             duration: 200,
             useNativeDriver: false,
           }).start(() => onCloseRef.current());
@@ -86,19 +86,25 @@ export default function PlatformModal({
 
   if (!mounted) return null;
 
+  // Web: slide modals render as a bottom sheet with a dimmed backdrop
+  if (animationType === 'slide' && !transparent) {
+    return (
+      <View style={[styles.webBackdrop, { position: 'fixed' as any }]}>
+        <Animated.View
+          style={[styles.webSheet, { transform: [{ translateY: slideY }] }]}
+        >
+          <View {...panResponder.panHandlers} style={styles.dragZone}>
+            <View style={styles.dragIndicator} />
+          </View>
+          {children}
+        </Animated.View>
+      </View>
+    );
+  }
+
+  // Web: transparent/fade modals use a fixed full-screen overlay
   return (
-    <Animated.View
-      style={[
-        styles.overlay,
-        { position: 'fixed' as any },
-        animationType === 'slide' && { transform: [{ translateY: slideY }] },
-      ]}
-    >
-      {showDragIndicator && (
-        <View {...panResponder.panHandlers} style={styles.dragZone}>
-          <View style={styles.dragIndicator} />
-        </View>
-      )}
+    <Animated.View style={[styles.overlay, { position: 'fixed' as any }]}>
       {children}
     </Animated.View>
   );
@@ -112,6 +118,25 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 1000,
+  },
+  webBackdrop: {
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  webSheet: {
+    width: '100%' as any,
+    maxWidth: 480,
+    height: '90%' as any,
+    backgroundColor: C.bgElevated,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    overflow: 'hidden',
   },
   dragZone: {
     backgroundColor: C.bgElevated,
