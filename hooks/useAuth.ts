@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Platform } from 'react-native';
 import { Session, User } from '@supabase/supabase-js';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { supabase } from '@/lib/supabase';
 
 export function useAuth() {
@@ -46,8 +48,24 @@ export function useAuth() {
   }
 
   async function signInWithOAuth(provider: 'google' | 'apple') {
-    const { error } = await supabase.auth.signInWithOAuth({ provider });
-    if (error) throw error;
+    if (Platform.OS === 'web') {
+      const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined;
+      const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
+      if (error) throw error;
+    } else {
+      const redirectUri = Linking.createURL('/');
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: redirectUri, skipBrowserRedirect: true },
+      });
+      if (error) throw error;
+      if (!data.url) return;
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUri);
+      if (result.type === 'success' && result.url) {
+        const { error: sessionError } = await supabase.auth.exchangeCodeForSession(result.url);
+        if (sessionError) throw sessionError;
+      }
+    }
   }
 
   async function requestPasswordReset(email: string) {

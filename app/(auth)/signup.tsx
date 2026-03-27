@@ -14,6 +14,18 @@ import { Link } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { C, R } from '@/constants/ClaudeTheme';
 
+function getStrength(pw: string): { score: number; label: string; color: string } {
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (score <= 1) return { score, label: 'Weak', color: '#EF4444' };
+  if (score === 2) return { score, label: 'Fair', color: '#F59E0B' };
+  if (score === 3) return { score, label: 'Good', color: '#84CC16' };
+  return { score, label: 'Strong', color: '#10B981' };
+}
+
 export default function SignupScreen() {
   const { signUp } = useAuth();
   const [email, setEmail] = useState('');
@@ -22,6 +34,8 @@ export default function SignupScreen() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const strength = getStrength(password);
 
   async function handleSignup() {
     if (!email || !password || !confirm) {
@@ -32,8 +46,8 @@ export default function SignupScreen() {
       setError('Passwords do not match.');
       return;
     }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    if (strength.score < 3) {
+      setError('Password is too weak. Use 8+ characters with uppercase and a number.');
       return;
     }
     setError(null);
@@ -106,12 +120,46 @@ export default function SignupScreen() {
           <Text style={styles.label}>Password</Text>
           <TextInput
             style={styles.input}
-            placeholder="Min. 6 characters"
+            placeholder="Min. 8 characters"
             placeholderTextColor={C.textPlaceholder}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
+
+          {password.length > 0 && (
+            <View style={styles.strengthWrap}>
+              <View style={styles.strengthBars}>
+                {[1, 2, 3, 4].map((i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.strengthBar,
+                      { backgroundColor: i <= strength.score ? strength.color : C.border },
+                    ]}
+                  />
+                ))}
+              </View>
+              <Text style={[styles.strengthLabel, { color: strength.color }]}>{strength.label}</Text>
+            </View>
+          )}
+
+          {password.length > 0 && (
+            <View style={styles.criteriaRow}>
+              <Text style={[styles.criterion, password.length >= 8 && styles.criterionMet]}>
+                8+ chars
+              </Text>
+              <Text style={[styles.criterion, /[A-Z]/.test(password) && styles.criterionMet]}>
+                Uppercase
+              </Text>
+              <Text style={[styles.criterion, /[0-9]/.test(password) && styles.criterionMet]}>
+                Number
+              </Text>
+              <Text style={[styles.criterion, /[^A-Za-z0-9]/.test(password) && styles.criterionMet]}>
+                Symbol
+              </Text>
+            </View>
+          )}
 
           <Text style={styles.label}>Confirm Password</Text>
           <TextInput
@@ -254,4 +302,19 @@ const styles = StyleSheet.create({
   successEmail: { fontWeight: '600', color: C.textPrimary },
 
   disabled: { opacity: 0.5 },
+
+  strengthWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: -8,
+    marginBottom: 10,
+  },
+  strengthBars: { flex: 1, flexDirection: 'row', gap: 4 },
+  strengthBar: { flex: 1, height: 4, borderRadius: 2 },
+  strengthLabel: { fontSize: 12, fontWeight: '600', minWidth: 44 },
+
+  criteriaRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
+  criterion: { fontSize: 11, color: C.textMuted, fontWeight: '500' },
+  criterionMet: { color: '#10B981', fontWeight: '600' },
 });

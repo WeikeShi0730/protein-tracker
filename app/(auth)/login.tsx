@@ -20,7 +20,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState<'google' | 'apple' | null>(null);
+  const [oauthLoading, setOauthLoading] = useState(false);
 
   async function handleLogin() {
     if (!email || !password) {
@@ -38,14 +38,14 @@ export default function LoginScreen() {
     }
   }
 
-  async function handleOAuth(provider: 'google' | 'apple') {
+  async function handleGoogleLogin() {
     setError(null);
-    setOauthLoading(provider);
+    setOauthLoading(true);
     try {
-      await signInWithOAuth(provider);
+      await signInWithOAuth('google');
     } catch (e: any) {
-      setError(e.message ?? `${provider} sign-in failed.`);
-      setOauthLoading(null);
+      setError(e.message ?? 'Google sign-in failed.');
+      setOauthLoading(false);
     }
   }
 
@@ -125,32 +125,18 @@ export default function LoginScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.oauthBtn, !!oauthLoading && styles.disabled]}
-            onPress={() => handleOAuth('google')}
-            disabled={loading || !!oauthLoading}
+            style={[styles.oauthBtn, (loading || oauthLoading) && styles.disabled]}
+            onPress={handleGoogleLogin}
+            disabled={loading || oauthLoading}
             activeOpacity={0.7}
           >
-            {oauthLoading === 'google' ? (
+            {oauthLoading ? (
               <ActivityIndicator color={C.textPrimary} size="small" />
             ) : (
               <Text style={styles.oauthBtnText}>Continue with Google</Text>
             )}
           </TouchableOpacity>
 
-          {Platform.OS !== 'android' && (
-            <TouchableOpacity
-              style={[styles.oauthBtn, styles.appleBtn, !!oauthLoading && styles.disabled]}
-              onPress={() => handleOAuth('apple')}
-              disabled={loading || !!oauthLoading}
-              activeOpacity={0.7}
-            >
-              {oauthLoading === 'apple' ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Text style={[styles.oauthBtnText, styles.appleBtnText]}>Continue with Apple</Text>
-              )}
-            </TouchableOpacity>
-          )}
         </Animated.View>
 
         {/* Sign up link */}
@@ -259,8 +245,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   oauthBtnText: { fontSize: 14, fontWeight: '600', color: C.textPrimary },
-  appleBtn: { backgroundColor: C.textPrimary, borderColor: C.textPrimary },
-  appleBtnText: { color: '#fff' },
 
   linkRow: { alignItems: 'center', paddingVertical: 4 },
   linkText: { color: C.textSecondary, fontSize: 14 },
