@@ -90,6 +90,7 @@ export default function PlatformModal({
     <Animated.View
       style={[
         styles.overlay,
+        { position: 'fixed' as any },
         animationType === 'slide' && { transform: [{ translateY: slideY }] },
       ]}
     >
