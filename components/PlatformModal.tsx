@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Platform, View, Modal, StyleSheet, Animated, PanResponder } from 'react-native';
+import { Platform, View, Modal, StyleSheet, Animated, PanResponder, useWindowDimensions } from 'react-native';
 import { C } from '@/constants/ClaudeTheme';
+
+const TAB_BAR_HEIGHT = 72;
 
 interface Props {
   visible: boolean;
@@ -17,6 +19,7 @@ export default function PlatformModal({
   transparent = false,
   children,
 }: Props) {
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const [mounted, setMounted] = useState(visible);
   const slideY = useRef(new Animated.Value(visible ? 0 : 1000)).current;
   const onCloseRef = useRef(onRequestClose);
@@ -88,10 +91,15 @@ export default function PlatformModal({
 
   // Web: slide modals render as a bottom sheet with a dimmed backdrop
   if (animationType === 'slide' && !transparent) {
+    const sheetHeight = (windowHeight - TAB_BAR_HEIGHT) * 0.9;
+    // Match the app container width from +html.tsx: full-width under 600px, 33.333% above
+    const sheetWidth = windowWidth >= 600
+      ? Math.max(360, Math.min(480, Math.round(windowWidth / 3)))
+      : windowWidth;
     return (
-      <View style={[styles.webBackdrop, { position: 'fixed' as any }]}>
+      <View style={[styles.webBackdrop, { position: 'fixed' as any, paddingBottom: TAB_BAR_HEIGHT }]}>
         <Animated.View
-          style={[styles.webSheet, { transform: [{ translateY: slideY }] }]}
+          style={[styles.webSheet, { width: sheetWidth, height: sheetHeight, transform: [{ translateY: slideY }] }]}
         >
           <View {...panResponder.panHandlers} style={styles.dragZone}>
             <View style={styles.dragIndicator} />
@@ -130,9 +138,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   webSheet: {
-    width: '100%' as any,
-    maxWidth: 480,
-    height: '90%' as any,
     backgroundColor: C.bgElevated,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,

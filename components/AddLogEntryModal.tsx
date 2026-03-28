@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import PlatformModal from '@/components/PlatformModal';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import type { Food } from '@/types';
 import { C, R } from '@/constants/ClaudeTheme';
 import DatePickerCalendar from '@/components/DatePickerCalendar';
@@ -124,7 +124,9 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
           )}
 
           {!selectedFood ? (
-            <Animated.View entering={FadeIn.duration(250)} style={{ flex: 1 }}>
+            // Plain View — Reanimated entering= uses absolute positioning during animation
+            // which breaks flex layout for scroll containers
+            <View style={{ flex: 1 }}>
               <View style={styles.searchWrapper}>
                 <Text style={styles.searchIcon}>⌕</Text>
                 <TextInput
@@ -166,10 +168,11 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
                   </TouchableOpacity>
                 )}
               />
-            </Animated.View>
+            </View>
           ) : (
-            <Animated.View entering={FadeInDown.duration(250)} style={{ flex: 1 }}>
-              <ScrollView style={styles.formScroll} keyboardShouldPersistTaps="handled">
+            // Plain View — keeps flex layout stable so ScrollView + sticky footer both render correctly
+            <View style={{ flex: 1 }}>
+              <ScrollView style={styles.formScroll} contentContainerStyle={styles.formScrollContent} keyboardShouldPersistTaps="handled">
                 <View style={styles.formArea}>
                   {/* Selected food chip */}
                   <TouchableOpacity style={styles.selectedFoodCard} onPress={() => setSelectedFood(null)}>
@@ -215,7 +218,7 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
 
                   {/* Preview */}
                   {previewProtein !== null && (
-                    <Animated.View entering={FadeIn.duration(200)} style={styles.preview}>
+                    <View style={styles.preview}>
                       <Text style={styles.previewLabel}>Preview</Text>
                       <View style={styles.previewRow}>
                         <View style={styles.previewChip}>
@@ -228,21 +231,23 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
                           <Text style={styles.previewChipLabel}>kcal</Text>
                         </View>
                       </View>
-                    </Animated.View>
+                    </View>
                   )}
-
-                  {/* Submit */}
-                  <TouchableOpacity
-                    style={[styles.addBtn, loading && styles.disabled]}
-                    onPress={handleAdd}
-                    disabled={loading}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.addBtnText}>{loading ? 'Adding…' : 'Add Entry'}</Text>
-                  </TouchableOpacity>
                 </View>
               </ScrollView>
-            </Animated.View>
+
+              {/* Sticky submit button — always visible regardless of scroll position */}
+              <View style={styles.stickyFooter}>
+                <TouchableOpacity
+                  style={[styles.addBtn, loading && styles.disabled]}
+                  onPress={handleAdd}
+                  disabled={loading}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.addBtnText}>{loading ? 'Adding…' : 'Add Entry'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           )}
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -375,12 +380,19 @@ const styles = StyleSheet.create({
   previewChipLabel: { fontSize: 11, color: C.textSecondary, marginTop: 1 },
   previewDivider: { width: 1, height: 32, backgroundColor: C.accentMid },
 
+  stickyFooter: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: C.border,
+    backgroundColor: C.bgElevated,
+  },
+
   addBtn: {
     backgroundColor: C.accent,
     borderRadius: R.md,
     paddingVertical: 15,
     alignItems: 'center',
-    marginTop: 4,
   },
   addBtnText: { color: '#fff', fontSize: 16, fontWeight: '600', letterSpacing: 0.2 },
   disabled: { opacity: 0.5 },
