@@ -18,7 +18,6 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-import { useNavigation } from 'expo-router';
 import { useFoods } from '@/contexts/FoodsContext';
 import FoodForm from '@/components/FoodForm';
 import PlatformModal from '@/components/PlatformModal';
@@ -30,7 +29,6 @@ type FoodInput = Omit<Food, 'id' | 'user_id' | 'created_at'>;
 export default function FoodsScreen() {
   const { foods, loading, error, addFood, editFood, removeFood } = useFoods();
 
-  const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingFood, setEditingFood] = useState<Food | null>(null);
   const [deletingFood, setDeletingFood] = useState<Food | null>(null);
@@ -65,15 +63,6 @@ export default function FoodsScreen() {
     setModalVisible(true);
   }, []);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity style={styles.headerBtn} onPress={openAdd}>
-          <Text style={styles.headerBtnText}>+ Add Food</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, openAdd]);
 
   const sections = useMemo(() => {
     const grouped: Record<string, Food[]> = {};
@@ -147,6 +136,12 @@ export default function FoodsScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         keyboardShouldPersistTaps="handled"
+        ListHeaderComponent={
+          <TouchableOpacity style={styles.addBtn} onPress={openAdd} activeOpacity={0.85}>
+            <Text style={styles.addBtnPlus}>+</Text>
+            <Text style={styles.addBtnText}>Add Food</Text>
+          </TouchableOpacity>
+        }
         ListEmptyComponent={
           <View style={styles.emptyWrap}>
             <Text style={styles.emptyIcon}>🥗</Text>
@@ -351,14 +346,19 @@ const styles = StyleSheet.create({
   },
   deleteBtnText: { fontSize: 12, fontWeight: '500', color: C.error },
 
-  headerBtn: {
+  addBtn: {
     backgroundColor: C.accent,
-    borderRadius: R.sm,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginRight: 12,
+    borderRadius: R.md,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    gap: 8,
+    ...shadow,
   },
-  headerBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  addBtnPlus: { color: 'rgba(255,255,255,0.8)', fontSize: 20, fontWeight: '300', lineHeight: 22 },
+  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 15, letterSpacing: 0.2 },
 
   overlay: {
     flex: 1,

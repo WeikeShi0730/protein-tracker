@@ -10,7 +10,19 @@
       "mcp__claude_ai_Notion__notion-fetch",
       "Bash(npx expo:*)",
       "Bash(git restore:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); mcps=d.get\\(''''mcpServers'''',{}\\); [print\\(k,'''':'''',v\\) for k,v in mcps.items\\(\\) if ''''github'''' in k.lower\\(\\)]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); mcps=d.get\\(''''mcpServers'''',{}\\); print\\(list\\(mcps.keys\\(\\)\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\(''''mcpServers'''', {}\\), indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
+      "Bash(grep -E \"\\\\.\\(js|ts|css|json\\)$\")",
+      "Bash(bash scripts/start-server.sh --project-dir /Users/weikeshi/Projects/protein-tracker)",
+      "Bash(SCRIPTS=/Users/weikeshi/.claude/plugins/cache/temp_git_1774708976823_682ut1/skills/brainstorming/scripts)",
+      "Bash(bash \"$SCRIPTS/start-server.sh\" --project-dir /Users/weikeshi/Projects/protein-tracker)",
+      "Bash(python3:*)",
+      "Bash(pip3 install:*)",
+      "Bash(npm install:*)",
+      "Bash(find /Users/weikeshi/Projects/protein-tracker/app -type f -name *layout* -o -name *auth* -o -name *sign* -o -name *login*)"
     ]
   }
 }

@@ -1,8 +1,14 @@
 import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import { ProfileProvider } from '@/contexts/ProfileContext';
 import { FoodsProvider } from '@/contexts/FoodsContext';
 import { C } from '@/constants/ClaudeTheme';
+
+function HeaderLogo() {
+  return (
+    <Image source={require('@/assets/images/logo.png')} style={styles.headerLogo} />
+  );
+}
 
 function TabIcon({ emoji, label, focused }: { emoji: string; label: string; focused: boolean }) {
   return (
@@ -40,32 +46,29 @@ export default function TabLayout() {
             borderBottomWidth: 1,
             borderBottomColor: C.border,
           } as any,
-          headerTitleStyle: {
-            fontWeight: '700',
-            fontSize: 17,
-            color: C.textPrimary,
-          },
           headerShadowVisible: false,
+          headerTitle: () => <HeaderLogo />,
+          headerTitleAlign: 'center',
         }}
       >
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Protein Tracker',
-            tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" label="Today" focused={focused} />,
+            tabBarLabel: 'Log',
+            tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" label="Log" focused={focused} />,
           }}
         />
         <Tabs.Screen
           name="foods"
           options={{
-            title: 'Foods',
+            tabBarLabel: 'Foods',
             tabBarIcon: ({ focused }) => <TabIcon emoji="🥗" label="Foods" focused={focused} />,
           }}
         />
         <Tabs.Screen
           name="settings"
           options={{
-            title: 'Me',
+            tabBarLabel: 'Me',
             tabBarIcon: ({ focused }) => <TabIcon emoji="👤" label="Me" focused={focused} />,
           }}
         />
@@ -87,4 +90,10 @@ const styles = StyleSheet.create({
     backgroundColor: C.accentLight,
   },
   tabEmoji: { fontSize: 18 },
+
+  headerLogo: {
+    width: 36,
+    height: 36,
+    borderRadius: 9,
+  },
 });

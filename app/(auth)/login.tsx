@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Link } from 'expo-router';
@@ -58,7 +59,10 @@ export default function LoginScreen() {
 
         {/* Brand mark */}
         <Animated.View entering={FadeInDown.delay(0).duration(400)} style={styles.brandWrap}>
-          <View style={styles.brandOrb} />
+          <Image
+            source={require('@/assets/images/logo.png')}
+            style={styles.brandLogo}
+          />
           <Text style={styles.brandName}>Protein Tracker</Text>
           <Text style={styles.brandTagline}>Your daily nutrition companion</Text>
         </Animated.View>
@@ -162,11 +166,10 @@ const styles = StyleSheet.create({
 
   // Brand
   brandWrap: { alignItems: 'center', marginBottom: 32 },
-  brandOrb: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: C.accent,
+  brandLogo: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
     marginBottom: 14,
     shadowColor: C.accent,
     shadowOpacity: 0.35,
