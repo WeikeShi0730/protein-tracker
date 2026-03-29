@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
+  ScrollView,
+  SafeAreaView,
   Platform,
   ActivityIndicator,
   Image,
@@ -51,11 +53,16 @@ export default function LoginScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <View style={styles.inner}>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.kav}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.inner}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
 
         {/* Brand mark */}
         <Animated.View entering={FadeInDown.delay(0).duration(400)} style={styles.brandWrap}>
@@ -157,14 +164,16 @@ export default function LoginScreen() {
           </Link>
         </Animated.View>
 
-      </View>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
-  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 28 },
+  kav: { flex: 1 },
+  inner: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 28, paddingVertical: 32 },
 
   // Brand
   brandWrap: { alignItems: 'center', marginBottom: 32 },
