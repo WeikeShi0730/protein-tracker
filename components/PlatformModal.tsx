@@ -91,7 +91,7 @@ export default function PlatformModal({
 
   // Web: slide modals render as a bottom sheet with a dimmed backdrop
   if (animationType === 'slide' && !transparent) {
-    const sheetHeight = (windowHeight - TAB_BAR_HEIGHT) * 0.9;
+    const sheetHeight = (windowHeight - TAB_BAR_HEIGHT) * 0.85;
     // Match the app container width from +html.tsx: full-width under 600px, 33.333% above
     const sheetWidth = windowWidth >= 600
       ? Math.max(360, Math.min(480, Math.round(windowWidth / 3)))

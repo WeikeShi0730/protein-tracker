@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   View,
   Text,
+  Image,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -45,8 +46,10 @@ export default function ForgotPasswordScreen() {
     >
       <View style={styles.inner}>
         <Animated.View entering={FadeInDown.delay(0).duration(400)} style={styles.brandWrap}>
-          <View style={styles.brandOrb} />
-          <Text style={styles.brandName}>Protein Tracker</Text>
+          <View style={styles.brandLogoWrap}>
+            <Image source={require('@/assets/images/logo.png')} style={styles.brandLogo} />
+          </View>
+          <Text style={styles.brandName}>Protein Shake</Text>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(80).duration(400)} style={styles.card}>
@@ -120,17 +123,21 @@ const styles = StyleSheet.create({
   inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 28 },
 
   brandWrap: { alignItems: 'center', marginBottom: 32 },
-  brandOrb: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: C.accent,
+  brandLogoWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    overflow: 'hidden',
     marginBottom: 14,
     shadowColor: C.accent,
     shadowOpacity: 0.35,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
+  },
+  brandLogo: {
+    width: 80,
+    height: 80,
   },
   brandName: { fontSize: 24, fontWeight: '700', color: C.textPrimary, marginBottom: 4 },
 

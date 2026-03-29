@@ -59,11 +59,13 @@ export default function LoginScreen() {
 
         {/* Brand mark */}
         <Animated.View entering={FadeInDown.delay(0).duration(400)} style={styles.brandWrap}>
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={styles.brandLogo}
-          />
-          <Text style={styles.brandName}>Protein Tracker</Text>
+          <View style={styles.brandLogoWrap}>
+            <Image
+              source={require('@/assets/images/logo.png')}
+              style={styles.brandLogo}
+            />
+          </View>
+          <Text style={styles.brandName}>Protein Shake</Text>
           <Text style={styles.brandTagline}>Your daily nutrition companion</Text>
         </Animated.View>
 
@@ -166,16 +168,21 @@ const styles = StyleSheet.create({
 
   // Brand
   brandWrap: { alignItems: 'center', marginBottom: 32 },
-  brandLogo: {
+  brandLogoWrap: {
     width: 80,
     height: 80,
     borderRadius: 20,
+    overflow: 'hidden',
     marginBottom: 14,
     shadowColor: C.accent,
     shadowOpacity: 0.35,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
+  },
+  brandLogo: {
+    width: 80,
+    height: 80,
   },
   brandName: { fontSize: 24, fontWeight: '700', color: C.textPrimary, marginBottom: 4 },
   brandTagline: { fontSize: 14, color: C.textSecondary },
