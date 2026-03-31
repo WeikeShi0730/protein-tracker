@@ -9,7 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
+import { scrollActiveInputIntoView } from '@/utils/scrollIntoView';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
@@ -50,7 +52,7 @@ export default function ResetPasswordScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.inner}>
+      <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
         <Animated.View entering={FadeInDown.delay(0).duration(400)} style={styles.brandWrap}>
           <View style={styles.brandLogoWrap}>
             <Image source={require('@/assets/images/logo.png')} style={styles.brandLogo} />
@@ -77,6 +79,7 @@ export default function ResetPasswordScreen() {
             secureTextEntry
             autoFocus
             autoComplete="new-password"
+            onFocus={scrollActiveInputIntoView}
           />
 
           <Text style={styles.label}>Confirm Password</Text>
@@ -88,6 +91,7 @@ export default function ResetPasswordScreen() {
             onChangeText={setConfirm}
             secureTextEntry
             autoComplete="new-password"
+            onFocus={scrollActiveInputIntoView}
           />
 
           <TouchableOpacity
@@ -103,14 +107,14 @@ export default function ResetPasswordScreen() {
             )}
           </TouchableOpacity>
         </Animated.View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
-  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 28 },
+  inner: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 28, paddingVertical: 32 },
 
   brandWrap: { alignItems: 'center', marginBottom: 32 },
   brandLogoWrap: {

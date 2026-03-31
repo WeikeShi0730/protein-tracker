@@ -16,6 +16,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Link } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { C, R } from '@/constants/ClaudeTheme';
+import { scrollActiveInputIntoView } from '@/utils/scrollIntoView';
 
 export default function LoginScreen() {
   const { signIn, signInWithOAuth } = useAuth();
@@ -96,6 +97,7 @@ export default function LoginScreen() {
             autoCapitalize="none"
             keyboardType="email-address"
             autoComplete="email"
+            onFocus={scrollActiveInputIntoView}
           />
 
           <Text style={styles.label}>Password</Text>
@@ -107,6 +109,7 @@ export default function LoginScreen() {
             onChangeText={setPassword}
             secureTextEntry
             autoComplete="password"
+            onFocus={scrollActiveInputIntoView}
           />
 
           <Link href="/(auth)/forgot-password" asChild>

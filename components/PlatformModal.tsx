@@ -4,6 +4,25 @@ import { C } from '@/constants/ClaudeTheme';
 
 const TAB_BAR_HEIGHT = 72;
 
+function useWebKeyboardHeight() {
+  const [kbHeight, setKbHeight] = useState(0);
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const vv = (window as any).visualViewport;
+    if (!vv) return;
+    const update = () => {
+      setKbHeight(Math.max(0, window.innerHeight - vv.height - vv.offsetTop));
+    };
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, []);
+  return kbHeight;
+}
+
 interface Props {
   visible: boolean;
   onRequestClose: () => void;
@@ -20,6 +39,7 @@ export default function PlatformModal({
   children,
 }: Props) {
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
+  const webKbHeight = useWebKeyboardHeight();
   const [mounted, setMounted] = useState(visible);
   const slideY = useRef(new Animated.Value(visible ? 0 : 1000)).current;
   const onCloseRef = useRef(onRequestClose);
@@ -91,13 +111,18 @@ export default function PlatformModal({
 
   // Web: slide modals render as a bottom sheet with a dimmed backdrop
   if (animationType === 'slide' && !transparent) {
-    const sheetHeight = (windowHeight - TAB_BAR_HEIGHT) * 0.85;
+    // When keyboard is visible, fill the space between the top of keyboard and top of screen.
+    // When no keyboard, use 85% of the available height as a bottom sheet.
+    const availableHeight = windowHeight - TAB_BAR_HEIGHT - webKbHeight;
+    const sheetHeight = webKbHeight > 0
+      ? Math.max(200, availableHeight - 16)  // nearly fill available space above keyboard
+      : Math.max(200, availableHeight * 0.85);
     // Match the app container width from +html.tsx: full-width under 600px, 33.333% above
     const sheetWidth = windowWidth >= 600
       ? Math.max(360, Math.min(480, Math.round(windowWidth / 3)))
       : windowWidth;
     return (
-      <View style={[styles.webBackdrop, { position: 'fixed' as any, paddingBottom: TAB_BAR_HEIGHT }]}>
+      <View style={[styles.webBackdrop, { position: 'fixed' as any, paddingBottom: TAB_BAR_HEIGHT + webKbHeight }]}>
         <Animated.View
           style={[styles.webSheet, { width: sheetWidth, height: sheetHeight, transform: [{ translateY: slideY }] }]}
         >

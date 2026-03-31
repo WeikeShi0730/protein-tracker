@@ -10,6 +10,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import PlatformModal from '@/components/PlatformModal';
+import { scrollActiveInputIntoView } from '@/utils/scrollIntoView';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { LogEntry } from '@/types';
 import { C, R } from '@/constants/ClaudeTheme';
@@ -26,6 +27,7 @@ export default function EditLogEntryModal({ visible, entry, onClose, onSave }: P
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
     if (entry) {
@@ -105,6 +107,7 @@ export default function EditLogEntryModal({ visible, entry, onClose, onSave }: P
               keyboardType="decimal-pad"
               autoFocus
               placeholderTextColor={C.textPlaceholder}
+              onFocus={scrollActiveInputIntoView}
             />
 
             <Text style={styles.label}>Notes (optional)</Text>
@@ -114,6 +117,7 @@ export default function EditLogEntryModal({ visible, entry, onClose, onSave }: P
               onChangeText={setNotes}
               placeholder="e.g. post-workout"
               placeholderTextColor={C.textPlaceholder}
+              onFocus={scrollActiveInputIntoView}
             />
 
             {previewProtein !== null && (

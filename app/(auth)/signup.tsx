@@ -16,6 +16,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Link } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { C, R } from '@/constants/ClaudeTheme';
+import { scrollActiveInputIntoView } from '@/utils/scrollIntoView';
 
 function getStrength(pw: string): { score: number; label: string; color: string } {
   let score = 0;
@@ -125,6 +126,7 @@ export default function SignupScreen() {
             autoCapitalize="none"
             keyboardType="email-address"
             autoComplete="email"
+            onFocus={scrollActiveInputIntoView}
           />
 
           <Text style={styles.label}>Password</Text>
@@ -135,6 +137,7 @@ export default function SignupScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            onFocus={scrollActiveInputIntoView}
           />
 
           {password.length > 0 && (
@@ -179,6 +182,7 @@ export default function SignupScreen() {
             value={confirm}
             onChangeText={setConfirm}
             secureTextEntry
+            onFocus={scrollActiveInputIntoView}
           />
 
           <TouchableOpacity

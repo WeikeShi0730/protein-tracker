@@ -16,6 +16,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Link } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { C, R } from '@/constants/ClaudeTheme';
+import { scrollActiveInputIntoView } from '@/utils/scrollIntoView';
 
 export default function ForgotPasswordScreen() {
   const { requestPasswordReset } = useAuth();
@@ -93,6 +94,7 @@ export default function ForgotPasswordScreen() {
                 keyboardType="email-address"
                 autoComplete="email"
                 autoFocus
+                onFocus={scrollActiveInputIntoView}
               />
 
               <TouchableOpacity

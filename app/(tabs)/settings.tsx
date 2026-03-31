@@ -18,6 +18,7 @@ import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useProfile } from '@/contexts/ProfileContext';
 import { useAuth } from '@/hooks/useAuth';
 import { C, R, shadow } from '@/constants/ClaudeTheme';
+import { scrollActiveInputIntoView } from '@/utils/scrollIntoView';
 
 export default function SettingsScreen() {
   const { profile, loading, updateGoals } = useProfile();
@@ -112,6 +113,7 @@ export default function SettingsScreen() {
               keyboardType="number-pad"
               placeholder="150"
               placeholderTextColor={C.textPlaceholder}
+              onFocus={scrollActiveInputIntoView}
             />
 
             <Text style={styles.label}>Calorie Goal (kcal)</Text>
@@ -122,6 +124,7 @@ export default function SettingsScreen() {
               keyboardType="number-pad"
               placeholder="2000"
               placeholderTextColor={C.textPlaceholder}
+              onFocus={scrollActiveInputIntoView}
             />
 
             <TouchableOpacity

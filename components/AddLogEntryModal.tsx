@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import PlatformModal from '@/components/PlatformModal';
+import { scrollActiveInputIntoView } from '@/utils/scrollIntoView';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { Food } from '@/types';
 import { C, R } from '@/constants/ClaudeTheme';
@@ -28,11 +29,13 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
       return () => clearTimeout(t);
     }
   }, [visible, selectedFood]);
+  const scrollRef = useRef<ScrollView>(null);
   const [servings, setServings] = useState('1');
   const [notes, setNotes] = useState('');
   const [selectedDate, setSelectedDate] = useState(() => new Date().toLocaleDateString('en-CA'));
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
 
   const sections = useMemo(() => {
     const filtered = foods.filter(
@@ -136,6 +139,7 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
                   placeholderTextColor={C.textPlaceholder}
                   value={query}
                   onChangeText={setQuery}
+                  onFocus={scrollActiveInputIntoView}
                 />
                 {query.length > 0 && (
                   <TouchableOpacity onPress={() => setQuery('')} style={styles.clearBtn}>
@@ -172,7 +176,7 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
           ) : (
             // Plain View — keeps flex layout stable so ScrollView + sticky footer both render correctly
             <View style={{ flex: 1 }}>
-              <ScrollView style={styles.formScroll} contentContainerStyle={styles.formScrollContent} keyboardShouldPersistTaps="handled">
+              <ScrollView ref={scrollRef} style={styles.formScroll} contentContainerStyle={styles.formScrollContent} keyboardShouldPersistTaps="handled">
                 <View style={styles.formArea}>
                   {/* Selected food chip */}
                   <TouchableOpacity style={styles.selectedFoodCard} onPress={() => setSelectedFood(null)}>
@@ -204,6 +208,7 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
                     placeholder="1"
                     placeholderTextColor={C.textPlaceholder}
                     autoFocus
+                    onFocus={scrollActiveInputIntoView}
                   />
 
                   {/* Notes */}
@@ -214,6 +219,7 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
                     onChangeText={setNotes}
                     placeholder="e.g. post-workout, with sauce…"
                     placeholderTextColor={C.textPlaceholder}
+                    onFocus={scrollActiveInputIntoView}
                   />
 
                   {/* Preview */}

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import { scrollActiveInputIntoView } from '@/utils/scrollIntoView';
 import type { Food } from '@/types';
 import { FOOD_CATEGORIES, DEFAULT_CATEGORY } from '@/constants/seedFoods';
 import { C, R } from '@/constants/ClaudeTheme';
@@ -32,6 +33,7 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
   const [category, setCategory] = useState(initial?.category || DEFAULT_CATEGORY);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
 
   async function handleSubmit() {
     if (!name.trim()) { setError('Food name is required.'); return; }
@@ -73,6 +75,7 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
         placeholder="e.g. Chicken Breast"
         placeholderTextColor={C.textPlaceholder}
         autoFocus
+        onFocus={scrollActiveInputIntoView}
       />
 
       <Text style={styles.label}>Category</Text>
@@ -98,6 +101,7 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
         onChangeText={setServingUnit}
         placeholder="e.g. 100g, 1 cup"
         placeholderTextColor={C.textPlaceholder}
+        onFocus={scrollActiveInputIntoView}
       />
 
       <Text style={styles.label}>Calories per Serving</Text>
@@ -108,6 +112,7 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
         placeholder="e.g. 165"
         placeholderTextColor={C.textPlaceholder}
         keyboardType="decimal-pad"
+        onFocus={scrollActiveInputIntoView}
       />
 
       <Text style={styles.label}>Protein per Serving (g)</Text>
@@ -118,6 +123,7 @@ export default function FoodForm({ initial, onSubmit, onCancel, submitLabel = 'S
         placeholder="e.g. 31"
         placeholderTextColor={C.textPlaceholder}
         keyboardType="decimal-pad"
+        onFocus={scrollActiveInputIntoView}
       />
 
       <View style={styles.buttons}>
