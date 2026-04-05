@@ -4,14 +4,43 @@ import { C } from '@/constants/ClaudeTheme';
 
 const TAB_BAR_HEIGHT = 72;
 
-function useWebKeyboardHeight() {
-  const [kbHeight, setKbHeight] = useState(0);
+function useVisualViewport() {
+  // Track the maximum height ever seen — this is the "full viewport" height before the
+  // keyboard opens. On iOS Safari, window.innerHeight shrinks when the keyboard appears
+  // (unlike Android Chrome), so we can't use it as a stable reference.
+  const maxHeightRef = useRef(0);
+
+  const getState = () => {
+    if (typeof window === 'undefined') return { top: 0, left: 0, width: 0, height: 0 };
+    const vv = (window as any).visualViewport;
+    const s = vv
+      ? { top: vv.offsetTop, left: vv.offsetLeft, width: vv.width, height: vv.height }
+      : { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
+    if (s.height > maxHeightRef.current) maxHeightRef.current = s.height;
+    return s;
+  };
+
+  const [vp, setVp] = useState(getState);
+
+  // Keep maxHeight updated on every render (covers initial mount before keyboard)
+  if (vp.height > maxHeightRef.current) maxHeightRef.current = vp.height;
+
   useEffect(() => {
     if (Platform.OS !== 'web') return;
     const vv = (window as any).visualViewport;
-    if (!vv) return;
+    if (!vv) {
+      const update = () => {
+        const h = window.innerHeight;
+        if (h > maxHeightRef.current) maxHeightRef.current = h;
+        setVp({ top: 0, left: 0, width: window.innerWidth, height: h });
+      };
+      window.addEventListener('resize', update);
+      return () => window.removeEventListener('resize', update);
+    }
     const update = () => {
-      setKbHeight(Math.max(0, window.innerHeight - vv.height - vv.offsetTop));
+      const s = { top: vv.offsetTop, left: vv.offsetLeft, width: vv.width, height: vv.height };
+      if (s.height > maxHeightRef.current) maxHeightRef.current = s.height;
+      setVp(s);
     };
     vv.addEventListener('resize', update);
     vv.addEventListener('scroll', update);
@@ -20,7 +49,8 @@ function useWebKeyboardHeight() {
       vv.removeEventListener('scroll', update);
     };
   }, []);
-  return kbHeight;
+
+  return { ...vp, fullHeight: maxHeightRef.current || vp.height };
 }
 
 interface Props {
@@ -39,7 +69,7 @@ export default function PlatformModal({
   children,
 }: Props) {
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
-  const webKbHeight = useWebKeyboardHeight();
+  const vp = useVisualViewport();
   const [mounted, setMounted] = useState(visible);
   const slideY = useRef(new Animated.Value(visible ? 0 : 1000)).current;
   const onCloseRef = useRef(onRequestClose);
@@ -111,18 +141,41 @@ export default function PlatformModal({
 
   // Web: slide modals render as a bottom sheet with a dimmed backdrop
   if (animationType === 'slide' && !transparent) {
-    // When keyboard is visible, fill the space between the top of keyboard and top of screen.
-    // When no keyboard, use 85% of the available height as a bottom sheet.
-    const availableHeight = windowHeight - TAB_BAR_HEIGHT - webKbHeight;
-    const sheetHeight = webKbHeight > 0
-      ? Math.max(200, availableHeight - 16)  // nearly fill available space above keyboard
-      : Math.max(200, availableHeight * 0.85);
+    // Use visual viewport dimensions so the backdrop exactly covers the visible area above
+    // the keyboard — this eliminates the gap between modal and keyboard on iOS Safari.
+    const vpWidth = vp.width || windowWidth;
+    const vpHeight = vp.height || windowHeight;
+    // Keyboard detection: compare current height against the max height ever seen.
+    // On iOS Safari, both window.innerHeight and visualViewport.height shrink together
+    // when the keyboard opens, so we can't compare them against each other.
+    // Instead, we compare against the largest height we've ever observed (= no keyboard).
+    const kbVisible = vp.fullHeight - vpHeight > 100;
+    // Only reserve space for the tab bar when the keyboard is not covering it.
+    const bottomPad = kbVisible ? 0 : TAB_BAR_HEIGHT;
+    const availableHeight = vpHeight - bottomPad;
+    // Use 85% of available height, but always leave at least 100px at the top
+    // so the modal header (title + cancel button) isn't hidden behind the app banner.
+    const sheetHeight = Math.max(200, Math.min(availableHeight * 0.85, availableHeight - 100));
     // Match the app container width from +html.tsx: full-width under 600px, 33.333% above
     const sheetWidth = windowWidth >= 600
       ? Math.max(360, Math.min(480, Math.round(windowWidth / 3)))
-      : windowWidth;
+      : vpWidth;
     return (
-      <View style={[styles.webBackdrop, { position: 'fixed' as any, paddingBottom: TAB_BAR_HEIGHT + webKbHeight }]}>
+      <View
+        style={[
+          styles.webBackdrop,
+          {
+            position: 'fixed' as any,
+            // Anchor to the visual viewport, not the layout viewport.
+            // This prevents the iOS Safari nav bar gap between modal and keyboard.
+            top: vp.top,
+            left: vp.left,
+            width: vpWidth,
+            height: vpHeight,
+            paddingBottom: bottomPad,
+          },
+        ]}
+      >
         <Animated.View
           style={[styles.webSheet, { width: sheetWidth, height: sheetHeight, transform: [{ translateY: slideY }] }]}
         >
@@ -153,10 +206,9 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   webBackdrop: {
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    // Positioning (top/left/width/height) is set inline using visual viewport values
+    // to handle iOS Safari keyboard correctly. Do NOT add bottom/right here —
+    // they conflict with height and cause the gap above the keyboard.
     zIndex: 1000,
     backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'flex-end',
