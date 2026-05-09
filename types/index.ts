@@ -9,6 +9,18 @@ export interface Food {
   created_at: string;
 }
 
+export interface OnlineFood {
+  id: string;
+  source: 'USDA';
+  sourceId: string;
+  name: string;
+  brand?: string | null;
+  category: string;
+  serving_unit: string;
+  calories_per_serving: number;
+  protein_per_serving: number;
+}
+
 export interface LogEntry {
   id: string;
   user_id: string;

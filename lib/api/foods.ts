@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { Food } from '@/types';
+import type { Food, OnlineFood } from '@/types';
 import { SEED_FOODS } from '@/constants/seedFoods';
 
 export async function getFoods(): Promise<Food[]> {
@@ -47,6 +47,18 @@ export async function deleteFood(id: string): Promise<void> {
     .eq('id', id);
 
   if (error) throw error;
+}
+
+export async function searchOnlineFoods(query: string): Promise<OnlineFood[]> {
+  const trimmed = query.trim();
+  if (trimmed.length < 2) return [];
+
+  const { data, error } = await supabase.functions.invoke<{ foods: OnlineFood[] }>('search-foods', {
+    body: { query: trimmed },
+  });
+
+  if (error) throw error;
+  return data?.foods ?? [];
 }
 
 // Deduplicates concurrent calls for the same user within the same session.

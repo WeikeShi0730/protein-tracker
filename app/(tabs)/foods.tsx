@@ -22,7 +22,8 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 import { useFoods } from '@/contexts/FoodsContext';
 import FoodForm from '@/components/FoodForm';
 import PlatformModal from '@/components/PlatformModal';
-import type { Food } from '@/types';
+import { searchOnlineFoods } from '@/lib/api/foods';
+import type { Food, OnlineFood } from '@/types';
 import { C, R, shadow, shadowStrong } from '@/constants/ClaudeTheme';
 
 type FoodInput = Omit<Food, 'id' | 'user_id' | 'created_at'>;
@@ -35,6 +36,10 @@ export default function FoodsScreen() {
   const [deletingFood, setDeletingFood] = useState<Food | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [query, setQuery] = useState('');
+  const [onlineFoods, setOnlineFoods] = useState<OnlineFood[]>([]);
+  const [onlineLoading, setOnlineLoading] = useState(false);
+  const [onlineError, setOnlineError] = useState<string | null>(null);
+  const [addingOnlineId, setAddingOnlineId] = useState<string | null>(null);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const hasInitializedCollapse = useRef(false);
 
@@ -98,6 +103,41 @@ export default function FoodsScreen() {
   }, [foods, collapsedCategories, query]);
 
   const isSearching = query.trim().length > 0;
+  const hasLocalResults = sections.some((section) => section.count > 0);
+
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      setOnlineFoods([]);
+      setOnlineLoading(false);
+      setOnlineError(null);
+      return;
+    }
+
+    let active = true;
+    const timeout = setTimeout(async () => {
+      setOnlineLoading(true);
+      setOnlineError(null);
+      try {
+        const results = await searchOnlineFoods(trimmed);
+        if (!active) return;
+
+        const localNames = new Set(foods.map((food) => food.name.trim().toLowerCase()));
+        setOnlineFoods(results.filter((food) => !localNames.has(food.name.trim().toLowerCase())));
+      } catch (e: any) {
+        if (!active) return;
+        setOnlineFoods([]);
+        setOnlineError(e.message ?? 'Online search failed.');
+      } finally {
+        if (active) setOnlineLoading(false);
+      }
+    }, 500);
+
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+    };
+  }, [foods, query]);
 
   function openEdit(food: Food) {
     setEditingFood(food);
@@ -117,6 +157,24 @@ export default function FoodsScreen() {
       await addFood(data);
     }
     closeModal();
+  }
+
+  async function handleAddOnlineFood(food: OnlineFood) {
+    setAddingOnlineId(food.id);
+    try {
+      await addFood({
+        name: food.name,
+        serving_unit: food.serving_unit,
+        calories_per_serving: food.calories_per_serving,
+        protein_per_serving: food.protein_per_serving,
+        category: food.category || 'Online',
+      });
+      setOnlineFoods((prev) => prev.filter((item) => item.id !== food.id));
+    } catch (e: any) {
+      Alert.alert('Error', e.message ?? 'Could not add online food.');
+    } finally {
+      setAddingOnlineId(null);
+    }
   }
 
   async function handleDelete() {
@@ -187,13 +245,58 @@ export default function FoodsScreen() {
           </View>
         }
         ListEmptyComponent={
-          <View style={styles.emptyWrap}>
-            <Text style={styles.emptyIcon}>🥗</Text>
-            <Text style={styles.emptyTitle}>{isSearching ? 'No matching foods' : 'No foods yet'}</Text>
-            <Text style={styles.emptySubtitle}>
-              {isSearching ? 'Try another search term' : 'Tap "+ Add Food" to build your library'}
-            </Text>
-          </View>
+          isSearching && (onlineLoading || onlineFoods.length > 0) ? null : (
+            <View style={styles.emptyWrap}>
+              <Text style={styles.emptyIcon}>🥗</Text>
+              <Text style={styles.emptyTitle}>{isSearching ? 'No matching foods' : 'No foods yet'}</Text>
+              <Text style={styles.emptySubtitle}>
+                {isSearching ? 'Try another search term' : 'Tap "+ Add Food" to build your library'}
+              </Text>
+            </View>
+          )
+        }
+        ListFooterComponent={
+          isSearching ? (
+            <View style={styles.onlineSection}>
+              <View style={styles.onlineHeader}>
+                <Text style={styles.sectionHeaderText}>Online Results</Text>
+                {onlineLoading && <ActivityIndicator size="small" color={C.accent} />}
+              </View>
+
+              {!!onlineError && (
+                <Text style={styles.onlineMessage}>{onlineError}</Text>
+              )}
+
+              {!onlineLoading && !onlineError && onlineFoods.length === 0 && !hasLocalResults && (
+                <Text style={styles.onlineMessage}>No online foods found.</Text>
+              )}
+
+              {onlineFoods.map((food) => {
+                const adding = addingOnlineId === food.id;
+                return (
+                  <View key={food.id} style={styles.onlineCard}>
+                    <View style={styles.cardInfo}>
+                      <View style={styles.onlineSourceRow}>
+                        <Text style={styles.onlineSource}>{food.source}</Text>
+                        {!!food.brand && <Text style={styles.onlineBrand} numberOfLines={1}>{food.brand}</Text>}
+                      </View>
+                      <Text style={styles.foodName} numberOfLines={2}>{food.name}</Text>
+                      <Text style={styles.foodMeta}>
+                        {food.serving_unit} · <Text style={styles.foodProtein}>{food.protein_per_serving}g protein</Text> · {food.calories_per_serving} kcal
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={[styles.onlineAddBtn, adding && styles.disabledBtn]}
+                      onPress={() => handleAddOnlineFood(food)}
+                      disabled={adding}
+                    >
+                      <Text style={styles.onlineAddBtnText}>{adding ? 'Adding' : 'Add'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </View>
+          ) : null
         }
         renderSectionHeader={({ section: { title, count } }) => {
           const collapsed = collapsedCategories.has(title);
@@ -375,6 +478,57 @@ const styles = StyleSheet.create({
   foodName: { fontSize: 15, fontWeight: '600', color: C.textPrimary },
   foodMeta: { fontSize: 12, color: C.textSecondary, marginTop: 2 },
   foodProtein: { color: C.accent, fontWeight: '600' },
+
+  onlineSection: { marginTop: 10 },
+  onlineHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+  },
+  onlineCard: {
+    backgroundColor: C.bgElevated,
+    borderRadius: R.md,
+    padding: 14,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: C.accentMid,
+    ...shadow,
+  },
+  onlineSourceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  onlineSource: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: C.accent,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  onlineBrand: { flex: 1, fontSize: 11, color: C.textMuted },
+  onlineAddBtn: {
+    backgroundColor: C.accentLight,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: R.sm,
+    borderWidth: 1,
+    borderColor: C.accentMid,
+    marginLeft: 12,
+  },
+  onlineAddBtnText: { fontSize: 12, fontWeight: '700', color: C.accent },
+  onlineMessage: {
+    color: C.textSecondary,
+    fontSize: 13,
+    paddingHorizontal: 4,
+    paddingVertical: 10,
+  },
+  disabledBtn: { opacity: 0.55 },
 
   editBtn: {
     backgroundColor: C.bgMuted,
