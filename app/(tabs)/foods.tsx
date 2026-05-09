@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
+  TextInput,
   SectionList,
   TouchableOpacity,
   StyleSheet,
@@ -33,6 +34,7 @@ export default function FoodsScreen() {
   const [editingFood, setEditingFood] = useState<Food | null>(null);
   const [deletingFood, setDeletingFood] = useState<Food | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [query, setQuery] = useState('');
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const hasInitializedCollapse = useRef(false);
 
@@ -65,8 +67,24 @@ export default function FoodsScreen() {
 
 
   const sections = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    const visibleFoods = normalizedQuery
+      ? foods.filter((food) =>
+          [
+            food.name,
+            food.category,
+            food.serving_unit,
+            `${food.protein_per_serving}g protein`,
+            `${food.calories_per_serving} kcal`,
+          ]
+            .join(' ')
+            .toLowerCase()
+            .includes(normalizedQuery)
+        )
+      : foods;
+
     const grouped: Record<string, Food[]> = {};
-    for (const f of foods) {
+    for (const f of visibleFoods) {
       const cat = f.category || 'Other';
       (grouped[cat] ??= []).push(f);
     }
@@ -74,10 +92,12 @@ export default function FoodsScreen() {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([title, data]) => ({
         title,
-        data: collapsedCategories.has(title) ? [] : data,
+        data: normalizedQuery || !collapsedCategories.has(title) ? data : [],
         count: data.length,
       }));
-  }, [foods, collapsedCategories]);
+  }, [foods, collapsedCategories, query]);
+
+  const isSearching = query.trim().length > 0;
 
   function openEdit(food: Food) {
     setEditingFood(food);
@@ -137,16 +157,42 @@ export default function FoodsScreen() {
         contentContainerStyle={styles.list}
         keyboardShouldPersistTaps="handled"
         ListHeaderComponent={
-          <TouchableOpacity style={styles.addBtn} onPress={openAdd} activeOpacity={0.85}>
-            <Text style={styles.addBtnPlus}>+</Text>
-            <Text style={styles.addBtnText}>Add Food</Text>
-          </TouchableOpacity>
+          <View>
+            <TouchableOpacity style={styles.addBtn} onPress={openAdd} activeOpacity={0.85}>
+              <Text style={styles.addBtnPlus}>+</Text>
+              <Text style={styles.addBtnText}>Add Food</Text>
+            </TouchableOpacity>
+            <View style={styles.searchWrapper}>
+              <Text style={styles.searchIcon}>⌕</Text>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search added foods"
+                placeholderTextColor={C.textPlaceholder}
+                value={query}
+                onChangeText={setQuery}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="search"
+              />
+              {query.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setQuery('')}
+                  style={styles.clearBtn}
+                  accessibilityLabel="Clear food search"
+                >
+                  <Text style={styles.clearBtnText}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
         }
         ListEmptyComponent={
           <View style={styles.emptyWrap}>
             <Text style={styles.emptyIcon}>🥗</Text>
-            <Text style={styles.emptyTitle}>No foods yet</Text>
-            <Text style={styles.emptySubtitle}>Tap "+ Add Food" to build your library</Text>
+            <Text style={styles.emptyTitle}>{isSearching ? 'No matching foods' : 'No foods yet'}</Text>
+            <Text style={styles.emptySubtitle}>
+              {isSearching ? 'Try another search term' : 'Tap "+ Add Food" to build your library'}
+            </Text>
           </View>
         }
         renderSectionHeader={({ section: { title, count } }) => {
@@ -155,14 +201,17 @@ export default function FoodsScreen() {
             <TouchableOpacity
               style={styles.sectionHeader}
               onPress={() => toggleCategory(title)}
+              disabled={isSearching}
               activeOpacity={0.7}
             >
               <Text style={styles.sectionHeaderText}>{title}</Text>
               <View style={styles.sectionHeaderRight}>
                 <Text style={styles.sectionHeaderCount}>{count}</Text>
-                <Text style={[styles.sectionHeaderChevron, collapsed && styles.sectionHeaderChevronCollapsed]}>
-                  ›
-                </Text>
+                {!isSearching && (
+                  <Text style={[styles.sectionHeaderChevron, collapsed && styles.sectionHeaderChevronCollapsed]}>
+                    ›
+                  </Text>
+                )}
               </View>
             </TouchableOpacity>
           );
@@ -359,6 +408,26 @@ const styles = StyleSheet.create({
   },
   addBtnPlus: { color: 'rgba(255,255,255,0.8)', fontSize: 20, fontWeight: '300', lineHeight: 22 },
   addBtnText: { color: '#fff', fontWeight: '600', fontSize: 15, letterSpacing: 0.2 },
+
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: R.md,
+    backgroundColor: C.bgSubtle,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  searchIcon: { fontSize: 17, color: C.textMuted, marginRight: 6 },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 11,
+    fontSize: 15,
+    color: C.textPrimary,
+  },
+  clearBtn: { padding: 4 },
+  clearBtnText: { fontSize: 12, color: C.textMuted },
 
   overlay: {
     flex: 1,
