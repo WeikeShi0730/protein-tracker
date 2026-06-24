@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import PlatformModal from '@/components/PlatformModal';
 import { scrollActiveInputIntoView } from '@/utils/scrollIntoView';
+import { scaleServingUnit } from '@/utils/servingUnit';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { Food } from '@/types';
 import { C, R } from '@/constants/ClaudeTheme';
@@ -97,6 +98,9 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
     : null;
   const previewCal = selectedFood && servings && !isNaN(parseFloat(servings))
     ? Math.round(parseFloat(servings) * selectedFood.calories_per_serving)
+    : null;
+  const previewServing = selectedFood && servings && !isNaN(parseFloat(servings))
+    ? scaleServingUnit(selectedFood.serving_unit, parseFloat(servings))
     : null;
 
   return (
@@ -227,6 +231,11 @@ export default function AddLogEntryModal({ visible, foods, onClose, onAdd }: Pro
                     <View style={styles.preview}>
                       <Text style={styles.previewLabel}>Preview</Text>
                       <View style={styles.previewRow}>
+                        <View style={styles.previewChip}>
+                          <Text style={styles.previewChipValue}>{previewServing}</Text>
+                          <Text style={styles.previewChipLabel}>serving</Text>
+                        </View>
+                        <View style={styles.previewDivider} />
                         <View style={styles.previewChip}>
                           <Text style={styles.previewChipValue}>{previewProtein}g</Text>
                           <Text style={styles.previewChipLabel}>protein</Text>
